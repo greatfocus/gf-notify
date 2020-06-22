@@ -1,0 +1,19 @@
+{
+    "env": "dev",
+    "impl": "user-service",
+    "service": {
+        "port": "5002"
+    },
+    "database" : {
+        "drivers": "postgres",
+        "host": "127.0.0.1",
+        "port": "5432",
+        "database": "users",
+        "user": "respect",
+        "password": "elders2020",
+        "executeSchema": true,
+        "secure": {
+            "sslMode": true
+        }
+    }
+}
