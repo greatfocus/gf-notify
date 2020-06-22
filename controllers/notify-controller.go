@@ -14,12 +14,12 @@ import (
 
 // NotifyController struct
 type NotifyController struct {
-	userRepository *repositories.UserRepository
+	userRepository *repositories.NotifyRepository
 }
 
 // Init method
 func (c *NotifyController) Init(db *database.DB) {
-	c.userRepository = &repositories.UserRepository{}
+	c.userRepository = &repositories.NotifyRepository{}
 	c.userRepository.Init(db)
 }
 
