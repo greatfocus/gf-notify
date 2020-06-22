@@ -1,0 +1,18 @@
+CREATE TABLE IF NOT EXISTS messageStatus (
+	id BIGSERIAL PRIMARY KEY,
+	name VARCHAR(20) NOT NULL,
+	UNIQUE(id),
+	UNIQUE(name)
+);
+
+
+INSERT INTO messageStatus (name)
+VALUES
+	('REQUESTED'),
+	('QUEUED'),
+	('PROCESSING'),	
+	('DELIVERED'),
+	('FAILED'),
+	('CANCELLED')
+ON CONFLICT (name) 
+DO NOTHING;
