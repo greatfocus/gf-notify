@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/greatfocus/gf-frame/database"
+	"github.com/greatfocus/gf-frame/middlewares"
 	"github.com/greatfocus/gf-notify/controllers"
-	"github.com/greatfocus/go-frame/database"
-	"github.com/greatfocus/go-frame/middlewares"
 )
 
 // Router is exported and used in main.go

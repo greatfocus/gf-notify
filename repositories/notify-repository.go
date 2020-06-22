@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-notify/models"
-	"github.com/greatfocus/go-frame/database"
 )
 
 // NotifyRepository struct

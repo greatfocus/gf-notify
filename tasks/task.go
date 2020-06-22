@@ -1,8 +1,8 @@
 package tasks
 
 import (
+	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-notify/services"
-	"github.com/greatfocus/go-frame/database"
 )
 
 // MessageOut queues messages to start sending

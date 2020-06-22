@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/greatfocus/gf-frame/scheduler"
 	"github.com/greatfocus/gf-notify/router"
 	"github.com/greatfocus/gf-notify/tasks"
-	"github.com/greatfocus/go-frame"
-	"github.com/greatfocus/go-frame/scheduler"
+	frame "github.com/greatfocus/gt-frame"
 	_ "github.com/lib/pq"
 )
 

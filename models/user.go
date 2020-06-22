@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/greatfocus/go-frame/utils"
+	"github.com/greatfocus/gf-frame/utils"
 )
 
 // User struct

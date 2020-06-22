@@ -1,8 +1,8 @@
 package services
 
 import (
+	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-notify/repositories"
-	"github.com/greatfocus/go-frame/database"
 )
 
 // MessageOut struct

@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/greatfocus/gf-frame/database"
+	"github.com/greatfocus/gf-frame/responses"
 	"github.com/greatfocus/gf-notify/models"
 	"github.com/greatfocus/gf-notify/repositories"
-	"github.com/greatfocus/go-frame/database"
-	"github.com/greatfocus/go-frame/responses"
 )
 
 // NotifyController struct
