@@ -12,13 +12,16 @@ import (
 // Message struct
 type Message struct {
 	ID        int64     `json:"id,omitempty"`
+	ChannelID int64     `json:"channelId,omitempty"`
 	Channel   string    `json:"channel,omitempty"`
 	Recipient string    `json:"recipient,omitempty"`
+	Subject   string    `json:"subject,omitempty"`
 	Content   string    `json:"content,omitempty"`
 	CreatedBy int64     `json:"createdBy,omitempty"`
 	CreatedOn time.Time `json:"createdOn,omitempty"`
 	ExpireOn  time.Time `json:"expireOn,omitempty"`
 	StatusID  int64     `json:"statusId,omitempty"`
+	Status    string    `json:"status,omitempty"`
 	Attempts  int64     `json:"attempts,omitempty"`
 	Priority  int64     `json:"priority,omitempty"`
 	RefID     int64     `json:"refId,omitempty"`
@@ -33,7 +36,7 @@ func (m *Message) PrepareInput(r *http.Request) error {
 	m.ID = 0
 	m.StatusID = 1
 	m.Attempts = 0
-	m.Priority = setPriority(m.Channel)
+	m.Priority = setPriority(m.ChannelID)
 
 	m.CreatedOn = time.Now()
 	m.ExpireOn = expire
@@ -50,11 +53,14 @@ func (m *Message) PrepareInput(r *http.Request) error {
 func (m *Message) Validate(action string) error {
 	switch strings.ToLower(action) {
 	case "new":
-		if m.Channel == "" {
+		if m.ChannelID == 0 {
 			return errors.New("Required Channel")
 		}
 		if m.Recipient == "" {
 			return errors.New("Required Recipient")
+		}
+		if m.Subject == "" {
+			return errors.New("Required Subject")
 		}
 		if m.Content == "" {
 			return errors.New("Required Content")
@@ -71,11 +77,11 @@ func (m *Message) PrepareOutput(message Message) {
 }
 
 // setPriority returns the channel priority
-func setPriority(channel string) int64 {
-	switch strings.ToLower(channel) {
-	case "sms":
+func setPriority(channelID int64) int64 {
+	switch channelID {
+	case 1:
 		return 1
-	case "email":
+	case 2:
 		return 2
 	default:
 		return 3

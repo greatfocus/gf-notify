@@ -24,10 +24,15 @@ func Router(db *database.DB) *http.ServeMux {
 // usersRoute created all routes and handlers relating to user controller
 func usersRoute(mux *http.ServeMux, db *database.DB) {
 	// Initialize controller
-	notifyController := controllers.NotifyController{}
-	notifyController.Init(db)
+	messageController := controllers.MessageController{}
+	messageController.Init(db)
+
+	// Initialize controller
+	channelController := controllers.ChannelController{}
+	channelController.Init(db)
 
 	// Initialize routes
-	mux.HandleFunc("/api/messages", middlewares.SetMiddlewareJwt(notifyController.Handler))
-	mux.HandleFunc("/api/dashboard", middlewares.SetMiddlewareJwt(notifyController.Handler))
+	mux.HandleFunc("/api/channels", middlewares.SetMiddlewareJwt(channelController.Handler))
+	mux.HandleFunc("/api/messages", middlewares.SetMiddlewareJwt(messageController.Handler))
+	//mux.HandleFunc("/api/dashboard", middlewares.SetMiddlewareJwt(messageController.Handler))
 }
