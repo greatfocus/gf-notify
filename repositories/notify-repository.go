@@ -2,8 +2,8 @@ package repositories
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
+	"time"
 
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-notify/models"
@@ -19,190 +19,61 @@ func (repo *NotifyRepository) Init(db *database.DB) {
 	repo.db = db
 }
 
-// CreateUser method
-func (repo *NotifyRepository) CreateUser(user models.User) (models.User, error) {
+// RequestMessage method created new message request
+func (repo *NotifyRepository) RequestMessage(message models.Message) (models.Message, error) {
+	year, month, _ := time.Now().Date()
+	database := getDatabase(int64(year), int64(month))
 	statement := `
-    insert into users (type, firstname, middlename, lastname, mobilenumber, email, password, expireddate, status)
-    values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    insert into $1 (channel, recipient, content, createdBy, createdOn, expireOn, statusId, attempts, priority)
+    values ($2, $3, $4, $5, $6, $7, $8, $9, $10)
     returning id
   `
 	var id int64
-	err := repo.db.Conn.QueryRow(statement, user.Type, user.FirstName, user.MiddleName, user.LastName,
-		user.MobileNumber, user.Email, user.Password, user.ExpiredDate, user.Status).Scan(&id)
+	err := repo.db.Conn.QueryRow(statement, database, message.Channel, message.Recipient, message.Content, message.CreatedBy,
+		message.CreatedOn, message.ExpireOn, message.StatusID, message.Attempts, message.Priority).Scan(&id)
 	if err != nil {
 		log.Printf("Error: %v\n", err)
-		return user, err
+		return message, err
 	}
-	createdUser := user
-	createdUser.ID = id
-	return createdUser, nil
+	createdMessage := message
+	createdMessage.ID = id
+	return createdMessage, nil
 }
 
-// GetUserByEmail method
-func (repo *NotifyRepository) GetUserByEmail(email string) (models.User, error) {
-	var user models.User
+// GetMessages method returns messages from the database
+func (repo *NotifyRepository) GetMessages(channel string, page int64, year int64, month int64) ([]models.Message, error) {
+	database := getDatabase(year, month)
 	query := `
-	select id, firstname, middlename, lastname, mobilenumber, email
-	from users 
-	where email = $1
-    `
-	row := repo.db.Conn.QueryRow(query, email)
-	err := row.Scan(&user.ID, &user.FirstName, &user.MiddleName, &user.LastName, &user.MobileNumber, &user.Email)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	return user, nil
-}
-
-// GetPasswordByEmail method
-func (repo *NotifyRepository) GetPasswordByEmail(email string) (models.User, error) {
-	var user models.User
-	query := `
-	select id, firstname, middlename, lastname, mobilenumber, email, password, lastattempt, failedattempts, status, enabled
-	from users 
-	where email = $1 and deleted=$2 and enabled=$3
-    `
-	row := repo.db.Conn.QueryRow(query, email, false, true)
-	err := row.Scan(&user.ID, &user.FirstName, &user.MiddleName, &user.LastName, &user.MobileNumber, &user.Email,
-		&user.Password, &user.LastAttempt, &user.FailedAttempts, &user.Status, &user.Enabled)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	return user, nil
-}
-
-// GetUserByEmailOrMobileNumber method
-func (repo *NotifyRepository) GetUserByEmailOrMobileNumber(email string, mobilenumber string) ([]models.User, error) {
-	query := `
-	select mobilenumber, email
-	from users 
-	where email = $1 or mobilenumber = $2
+	select id, channel, recipient, content, createdBy, createdOn, expireOn, statusId, attempts, priority, refId 
+	from $1 
+	where channel = $2
+	order BY createdOn ASC limit 50 OFFSET $3-1
 	`
-	rows, err := repo.db.Conn.Query(query, email, mobilenumber)
+	rows, err := repo.db.Conn.Query(query, database, channel, page)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	return getUsersFromRows(rows)
+	return messageMapper(rows)
 }
 
-// UpdateUser method
-func (repo *NotifyRepository) UpdateUser(user models.User) error {
-	query := `
-    update users
-	set 
-		status=$3, 
-		enabled=$4,
-		failedattempts=$5,
-		expireddate=$6,
-		updatedat=CURRENT_TIMESTAMP
-    where id=$1 and deleted=$2
-  	`
-
-	res, err := repo.db.Conn.Exec(query, user.ID, false, user.Status, user.Enabled, user.FailedAttempts, user.ExpiredDate)
-	if err != nil {
-		return err
-	}
-
-	count, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if count != 1 {
-		return fmt.Errorf("more than 1 record got updated User for %d", user.ID)
-	}
-
-	return nil
-}
-
-// UpdateUserLoginAttempt method
-func (repo *NotifyRepository) UpdateUserLoginAttempt(user models.User) error {
-	query := `
-    update users
-	set 
-		lastattempt=$2, 
-		failedattempts=$3,
-		lastchange=$4,
-		status=$5		
-    where id=$1
-  	`
-
-	res, err := repo.db.Conn.Exec(query, user.ID, user.LastAttempt, user.FailedAttempts, user.LastChange, user.Status)
-	if err != nil {
-		return err
-	}
-
-	count, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if count != 1 {
-		return fmt.Errorf("more than 1 record got updated User for %d", user.ID)
-	}
-
-	return nil
-}
-
-// GetUsers method
-func (repo *NotifyRepository) GetUsers(page int64) ([]models.User, error) {
-	query := `
-	select id, type, firstname, middlename, lastname, mobilenumber, email, failedattempts, lastattempt, lastchange, expireddate, createdat, updatedat, status, enabled
-	from users 
-	where deleted=$1
-	order BY createdat limit 50 OFFSET $2-1
-    `
-	rows, err := repo.db.Conn.Query(query, false, page)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	users := []models.User{}
-	for rows.Next() {
-		var user models.User
-		err := rows.Scan(&user.ID, &user.Type, &user.FirstName, &user.MiddleName, &user.LastName, &user.MobileNumber,
-			&user.Email, &user.FailedAttempts, &user.LastAttempt, &user.LastChange, &user.ExpiredDate, &user.CreatedAt, &user.UpdatedAt, &user.Status, &user.Enabled)
-		if err != nil {
-			return nil, err
-		}
-		users = append(users, user)
-	}
-
-	return users, nil
-}
-
-// GetUser method
-func (repo *NotifyRepository) GetUser(id int64) (models.User, error) {
-	var user models.User
-	query := `
-	select id, type, firstname, middlename, lastname, mobilenumber, email, failedattempts, lastattempt, lastchange, expireddate, createdat, updatedat, status, enabled
-	from users 
-	where id=$1 and deleted=$2 and enabled=$3
-	`
-	row := repo.db.Conn.QueryRow(query, id, false, true)
-	err := row.Scan(&user.ID, &user.Type, &user.FirstName, &user.MiddleName, &user.LastName, &user.MobileNumber,
-		&user.Email, &user.FailedAttempts, &user.LastAttempt, &user.LastChange, &user.ExpiredDate, &user.CreatedAt, &user.UpdatedAt, &user.Status, &user.Enabled)
-	if err != nil {
-		return models.User{}, err
-	}
-
-	return user, nil
+// getDatabase returns database name depending with the year and month
+func getDatabase(year int64, month int64) string {
+	return "messageOut" + string(year) + string(month)
 }
 
 // prepare users row
-func getUsersFromRows(rows *sql.Rows) ([]models.User, error) {
-	users := []models.User{}
+func messageMapper(rows *sql.Rows) ([]models.Message, error) {
+	messages := []models.Message{}
 	for rows.Next() {
-		var user models.User
-		err := rows.Scan(&user.ID, &user.MobileNumber)
+		var message models.Message
+		err := rows.Scan(&message.ID, &message.Channel)
 		if err != nil {
 			return nil, err
 		}
-		users = append(users, user)
+		messages = append(messages, message)
 	}
 
-	return users, nil
+	return messages, nil
 }

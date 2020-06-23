@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -14,20 +16,22 @@ import (
 
 // NotifyController struct
 type NotifyController struct {
-	userRepository *repositories.NotifyRepository
+	notifyRepository *repositories.NotifyRepository
 }
 
 // Init method
 func (c *NotifyController) Init(db *database.DB) {
-	c.userRepository = &repositories.NotifyRepository{}
-	c.userRepository.Init(db)
+	c.notifyRepository = &repositories.NotifyRepository{}
+	c.notifyRepository.Init(db)
 }
 
 // Handler method routes to http methods supported
 func (c *NotifyController) Handler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		c.getUsers(w, r)
+		c.getMessages(w, r)
+	case http.MethodPost:
+		c.requestMessage(w, r)
 	default:
 		err := errors.New("Invalid Request")
 		responses.Error(w, http.StatusUnprocessableEntity, err)
@@ -35,31 +39,53 @@ func (c *NotifyController) Handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getUsers method
-func (c *NotifyController) getUsers(w http.ResponseWriter, r *http.Request) {
-	pageStr := r.FormValue("page")
-	idStr := r.FormValue("id")
-
-	if len(idStr) != 0 {
-		_, err := strconv.ParseInt(idStr, 10, 64)
-		if err != nil {
-			derr := errors.New("Invalid parameter")
-			log.Printf("Error: %v\n", err)
-			responses.Error(w, http.StatusBadRequest, derr)
-			return
-		}
-
-		user := models.User{}
-		//user, err := c.userRepository.GetUser(id)
-		if err != nil {
-			responses.Error(w, http.StatusBadRequest, err)
-			return
-		}
-		responses.Success(w, http.StatusOK, user)
+// getMessages method returns messages
+func (c *NotifyController) requestMessage(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		derr := errors.New("invalid payload request")
+		log.Printf("Error: %v\n", err)
+		responses.Error(w, http.StatusUnprocessableEntity, derr)
 		return
 	}
-	if len(pageStr) != 0 {
-		_, err := strconv.ParseInt(pageStr, 10, 64)
+	message := models.Message{}
+	err = json.Unmarshal(body, &message)
+	if err != nil {
+		derr := errors.New("invalid payload request")
+		log.Printf("Error: %v\n", err)
+		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		return
+	}
+	message.PrepareInput(r)
+	err = message.Validate("new")
+	if err != nil {
+		log.Printf("Error: %v\n", err)
+		responses.Error(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	createdMessage, err := c.notifyRepository.RequestMessage(message)
+	if err != nil {
+		derr := errors.New("unexpected error occurred")
+		log.Printf("Error: %v\n", err)
+		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		return
+	}
+
+	result := models.Message{}
+	result.PrepareOutput(createdMessage)
+	responses.Success(w, http.StatusCreated, result)
+}
+
+// requestMessage method creates a message request
+func (c *NotifyController) getMessages(w http.ResponseWriter, r *http.Request) {
+	pageStr := r.FormValue("page")
+	yearStr := r.FormValue("year")
+	monthStr := r.FormValue("month")
+	channel := r.FormValue("channel")
+
+	if len(pageStr) != 0 && len(yearStr) != 0 && len(monthStr) != 0 {
+		page, err := strconv.ParseInt(pageStr, 10, 64)
 		if err != nil {
 			derr := errors.New("Invalid parameter")
 			log.Printf("Error: %v\n", err)
@@ -67,13 +93,29 @@ func (c *NotifyController) getUsers(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		users := []models.User{}
-		//users, err = c.userRepository.GetUsers(page)
+		year, err := strconv.ParseInt(yearStr, 10, 64)
+		if err != nil {
+			derr := errors.New("Invalid parameter")
+			log.Printf("Error: %v\n", err)
+			responses.Error(w, http.StatusBadRequest, derr)
+			return
+		}
+
+		month, err := strconv.ParseInt(yearStr, 10, 64)
+		if err != nil {
+			derr := errors.New("Invalid parameter")
+			log.Printf("Error: %v\n", err)
+			responses.Error(w, http.StatusBadRequest, derr)
+			return
+		}
+
+		messages := []models.Message{}
+		messages, err = c.notifyRepository.GetMessages(channel, page, year, month)
 		if err != nil {
 			responses.Error(w, http.StatusBadRequest, err)
 			return
 		}
-		responses.Success(w, http.StatusOK, users)
+		responses.Success(w, http.StatusOK, messages)
 		return
 	}
 
