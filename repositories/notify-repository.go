@@ -3,6 +3,8 @@ package repositories
 import (
 	"database/sql"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/greatfocus/gf-frame/database"
@@ -22,14 +24,14 @@ func (repo *NotifyRepository) Init(db *database.DB) {
 // RequestMessage method created new message request
 func (repo *NotifyRepository) RequestMessage(message models.Message) (models.Message, error) {
 	year, month, _ := time.Now().Date()
-	database := getDatabase(int64(year), int64(month))
 	statement := `
-    insert into $1 (channel, recipient, content, createdBy, createdOn, expireOn, statusId, attempts, priority)
-    values ($2, $3, $4, $5, $6, $7, $8, $9, $10)
+    insert into $table (channel, recipient, content, createdBy, createdOn, expireOn, statusId, attempts, priority)
+    values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     returning id
-  `
+	`
+	query := getDatabase(statement, year, int(month))
 	var id int64
-	err := repo.db.Conn.QueryRow(statement, database, message.Channel, message.Recipient, message.Content, message.CreatedBy,
+	err := repo.db.Conn.QueryRow(query, message.Channel, message.Recipient, message.Content, message.CreatedBy,
 		message.CreatedOn, message.ExpireOn, message.StatusID, message.Attempts, message.Priority).Scan(&id)
 	if err != nil {
 		log.Printf("Error: %v\n", err)
@@ -41,15 +43,16 @@ func (repo *NotifyRepository) RequestMessage(message models.Message) (models.Mes
 }
 
 // GetMessages method returns messages from the database
-func (repo *NotifyRepository) GetMessages(channel string, page int64, year int64, month int64) ([]models.Message, error) {
-	database := getDatabase(year, month)
-	query := `
-	select id, channel, recipient, content, createdBy, createdOn, expireOn, statusId, attempts, priority, refId 
-	from $1 
-	where channel = $2
-	order BY createdOn ASC limit 50 OFFSET $3-1
+func (repo *NotifyRepository) GetMessages(channel string, page int64, year int, month int) ([]models.Message, error) {
+
+	statement := `
+	select id, channel, recipient, content, createdBy, createdOn, expireOn, statusId, attempts, priority 
+	from $table 
+	where channel = $1
+	order BY createdOn ASC limit 50 OFFSET $2-1
 	`
-	rows, err := repo.db.Conn.Query(query, database, channel, page)
+	query := getDatabase(statement, year, month)
+	rows, err := repo.db.Conn.Query(query, channel, page)
 	if err != nil {
 		return nil, err
 	}
@@ -59,8 +62,11 @@ func (repo *NotifyRepository) GetMessages(channel string, page int64, year int64
 }
 
 // getDatabase returns database name depending with the year and month
-func getDatabase(year int64, month int64) string {
-	return "messageOut" + string(year) + string(month)
+func getDatabase(query string, year int, month int) string {
+	yr := strconv.Itoa(year)
+	mnth := strconv.Itoa(month)
+	database := "messageOut" + yr + mnth
+	return strings.Replace(query, "$table", database, -1)
 }
 
 // prepare users row
@@ -68,7 +74,9 @@ func messageMapper(rows *sql.Rows) ([]models.Message, error) {
 	messages := []models.Message{}
 	for rows.Next() {
 		var message models.Message
-		err := rows.Scan(&message.ID, &message.Channel)
+		err := rows.Scan(&message.ID, &message.Channel, &message.Recipient, &message.Content,
+			&message.CreatedBy, &message.CreatedOn, &message.ExpireOn, &message.StatusID,
+			&message.Attempts, &message.Priority)
 		if err != nil {
 			return nil, err
 		}

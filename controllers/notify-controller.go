@@ -56,7 +56,12 @@ func (c *NotifyController) requestMessage(w http.ResponseWriter, r *http.Request
 		responses.Error(w, http.StatusUnprocessableEntity, derr)
 		return
 	}
-	message.PrepareInput(r)
+	err = message.PrepareInput(r)
+	/*if err != nil {
+		log.Printf("Error: %v\n", err)
+		responses.Error(w, http.StatusUnprocessableEntity, err)
+		return
+	}*/
 	err = message.Validate("new")
 	if err != nil {
 		log.Printf("Error: %v\n", err)
@@ -84,7 +89,7 @@ func (c *NotifyController) getMessages(w http.ResponseWriter, r *http.Request) {
 	monthStr := r.FormValue("month")
 	channel := r.FormValue("channel")
 
-	if len(pageStr) != 0 && len(yearStr) != 0 && len(monthStr) != 0 {
+	if len(pageStr) != 0 && len(yearStr) != 0 && len(monthStr) != 0 && len(monthStr) != 0 && len(channel) != 0 {
 		page, err := strconv.ParseInt(pageStr, 10, 64)
 		if err != nil {
 			derr := errors.New("Invalid parameter")
@@ -93,7 +98,7 @@ func (c *NotifyController) getMessages(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		year, err := strconv.ParseInt(yearStr, 10, 64)
+		year, err := strconv.ParseInt(yearStr, 10, 36)
 		if err != nil {
 			derr := errors.New("Invalid parameter")
 			log.Printf("Error: %v\n", err)
@@ -101,7 +106,7 @@ func (c *NotifyController) getMessages(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		month, err := strconv.ParseInt(yearStr, 10, 64)
+		month, err := strconv.ParseInt(monthStr, 10, 36)
 		if err != nil {
 			derr := errors.New("Invalid parameter")
 			log.Printf("Error: %v\n", err)
@@ -110,7 +115,7 @@ func (c *NotifyController) getMessages(w http.ResponseWriter, r *http.Request) {
 		}
 
 		messages := []models.Message{}
-		messages, err = c.notifyRepository.GetMessages(channel, page, year, month)
+		messages, err = c.notifyRepository.GetMessages(channel, page, int(year), int(month))
 		if err != nil {
 			responses.Error(w, http.StatusBadRequest, err)
 			return

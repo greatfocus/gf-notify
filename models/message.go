@@ -25,38 +25,38 @@ type Message struct {
 }
 
 // PrepareInput initiliazes the Message request object
-func (u *Message) PrepareInput(r *http.Request) error {
+func (m *Message) PrepareInput(r *http.Request) error {
 	// All message have expiry date of 1 week
 	var expire = time.Now()
 	expire.AddDate(0, 0, 7)
 
-	u.ID = 0
+	m.ID = 0
+	m.StatusID = 1
+	m.Attempts = 0
+	m.Priority = setPriority(m.Channel)
+
+	m.CreatedOn = time.Now()
+	m.ExpireOn = expire
 	userID, err := jwt.ExtractTokenID(r)
 	if err != nil {
 		return errors.New("Invalid token")
 	}
 
-	u.CreatedBy = userID
-	u.CreatedOn = time.Now()
-	u.ExpireOn = expire
-	u.StatusID = 1
-	u.Attempts = 0
-	u.Priority = setPriority(u.Channel)
-
+	m.CreatedBy = userID
 	return nil
 }
 
 // Validate check if request is valid
-func (u *Message) Validate(action string) error {
+func (m *Message) Validate(action string) error {
 	switch strings.ToLower(action) {
 	case "new":
-		if u.Channel == "" {
+		if m.Channel == "" {
 			return errors.New("Required Channel")
 		}
-		if u.Recipient == "" {
+		if m.Recipient == "" {
 			return errors.New("Required Recipient")
 		}
-		if u.Content == "" {
+		if m.Content == "" {
 			return errors.New("Required Content")
 		}
 		return nil
@@ -66,8 +66,8 @@ func (u *Message) Validate(action string) error {
 }
 
 // PrepareOutput initiliazes the Message request object
-func (u *Message) PrepareOutput(m Message) {
-	u.ID = m.ID
+func (m *Message) PrepareOutput(message Message) {
+	m.ID = message.ID
 }
 
 // setPriority returns the channel priority
