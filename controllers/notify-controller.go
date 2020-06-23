@@ -57,11 +57,11 @@ func (c *NotifyController) requestMessage(w http.ResponseWriter, r *http.Request
 		return
 	}
 	err = message.PrepareInput(r)
-	/*if err != nil {
+	if err != nil {
 		log.Printf("Error: %v\n", err)
 		responses.Error(w, http.StatusUnprocessableEntity, err)
 		return
-	}*/
+	}
 	err = message.Validate("new")
 	if err != nil {
 		log.Printf("Error: %v\n", err)

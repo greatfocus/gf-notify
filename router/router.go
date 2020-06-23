@@ -28,6 +28,6 @@ func usersRoute(mux *http.ServeMux, db *database.DB) {
 	notifyController.Init(db)
 
 	// Initialize routes
-	mux.HandleFunc("/api/messages", middlewares.SetMiddlewareJSON(notifyController.Handler))
-	mux.HandleFunc("/api/dashboard", middlewares.SetMiddlewareJSON(notifyController.Handler))
+	mux.HandleFunc("/api/messages", middlewares.SetMiddlewareJwt(notifyController.Handler))
+	mux.HandleFunc("/api/dashboard", middlewares.SetMiddlewareJwt(notifyController.Handler))
 }
