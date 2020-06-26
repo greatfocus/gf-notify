@@ -15,5 +15,11 @@
         "secure": {
             "sslMode": true
         }
+    },
+    "email" : {
+        "host": "http",
+        "port": "5432",
+        "user": "respect",
+        "password": "elders2020"
     }
 }

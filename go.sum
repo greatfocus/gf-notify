@@ -5,6 +5,12 @@ github.com/greatfocus/gf-frame v0.0.0-20200622192900-6ea32e2f3d6b h1:dFjwjyKD/qD
 github.com/greatfocus/gf-frame v0.0.0-20200622192900-6ea32e2f3d6b/go.mod h1:r0qVafM5n1FdeMnXfe+fNIIqpzbecA5yBSG0lIKeZLU=
 github.com/greatfocus/gf-frame v0.0.0-20200623140822-9fdf0fb9adf5 h1:sWrcpoCQFVpKvhi1fa8iMBBuCk94An/aHNKfgtP2uvw=
 github.com/greatfocus/gf-frame v0.0.0-20200623140822-9fdf0fb9adf5/go.mod h1:r0qVafM5n1FdeMnXfe+fNIIqpzbecA5yBSG0lIKeZLU=
+github.com/greatfocus/gf-frame v0.0.0-20200623230845-4ade7d2ec1c2 h1:K2hNrkKhoHdP0zvoOIWEjkwSVg7g6EZoCyzfdgmAIKA=
+github.com/greatfocus/gf-frame v0.0.0-20200623230845-4ade7d2ec1c2/go.mod h1:r0qVafM5n1FdeMnXfe+fNIIqpzbecA5yBSG0lIKeZLU=
+github.com/greatfocus/gf-frame v0.0.0-20200624090612-893aa4b2f209 h1:fS7WGgoTmhwkg1i6sVz9E5jbnMGXRVOVVB2YixB5LHw=
+github.com/greatfocus/gf-frame v0.0.0-20200624090612-893aa4b2f209/go.mod h1:r0qVafM5n1FdeMnXfe+fNIIqpzbecA5yBSG0lIKeZLU=
+github.com/greatfocus/gf-frame v0.0.0-20200626082701-13658136065b h1:86mN3RVHwKg/pvlLJ09/LJg2H39jWu69KlgB4NOzObM=
+github.com/greatfocus/gf-frame v0.0.0-20200626082701-13658136065b/go.mod h1:r0qVafM5n1FdeMnXfe+fNIIqpzbecA5yBSG0lIKeZLU=
 github.com/lib/pq v1.7.0 h1:h93mCPfUSkaul3Ka/VG8uZdmW1uMHDGxzu0NWHuJmHY=
 github.com/lib/pq v1.7.0/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
