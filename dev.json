@@ -17,9 +17,10 @@
         }
     },
     "email" : {
-        "host": "http",
-        "port": "5432",
-        "user": "respect",
-        "password": "elders2020"
+        "host": "smtp.gmail.com",
+        "port": "587",
+        "user": "mucunga90@gmail.com",
+        "password": "Mucunga90()",
+        "from": "mucunga90@gmail.com"
     }
 }

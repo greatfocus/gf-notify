@@ -69,7 +69,7 @@ func (c *MessageController) requestMessage(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	createdMessage, err := c.messageRepository.RequestMessage(message)
+	createdMessage, err := c.messageRepository.AddMessage(message)
 	if err != nil {
 		derr := errors.New("unexpected error occurred")
 		log.Printf("Error: %v\n", err)
@@ -85,11 +85,10 @@ func (c *MessageController) requestMessage(w http.ResponseWriter, r *http.Reques
 // requestMessage method creates a message request
 func (c *MessageController) getMessages(w http.ResponseWriter, r *http.Request) {
 	pageStr := r.FormValue("page")
-	yearStr := r.FormValue("year")
-	monthStr := r.FormValue("month")
+	statusStr := r.FormValue("statusId")
 	channelStr := r.FormValue("channelId")
 
-	if len(pageStr) != 0 && len(yearStr) != 0 && len(monthStr) != 0 && len(monthStr) != 0 && len(channelStr) != 0 {
+	if len(pageStr) != 0 && len(statusStr) != 0 && len(channelStr) != 0 {
 		page, err := strconv.ParseInt(pageStr, 10, 64)
 		if err != nil {
 			derr := errors.New("Invalid parameter")
@@ -98,15 +97,7 @@ func (c *MessageController) getMessages(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 
-		year, err := strconv.ParseInt(yearStr, 10, 36)
-		if err != nil {
-			derr := errors.New("Invalid parameter")
-			log.Printf("Error: %v\n", err)
-			responses.Error(w, http.StatusBadRequest, derr)
-			return
-		}
-
-		month, err := strconv.ParseInt(monthStr, 10, 36)
+		statusID, err := strconv.ParseInt(statusStr, 10, 36)
 		if err != nil {
 			derr := errors.New("Invalid parameter")
 			log.Printf("Error: %v\n", err)
@@ -123,7 +114,12 @@ func (c *MessageController) getMessages(w http.ResponseWriter, r *http.Request) 
 		}
 
 		messages := []models.Message{}
-		messages, err = c.messageRepository.GetMessages(channelID, page, int(year), int(month))
+		params := repositories.MessageParam{
+			ChannelID: channelID,
+			StatusID:  statusID,
+			Page:      page,
+		}
+		messages, err = c.messageRepository.GetMessages(params)
 		if err != nil {
 			responses.Error(w, http.StatusBadRequest, err)
 			return

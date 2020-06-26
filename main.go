@@ -14,8 +14,8 @@ func main() {
 	service := frame.Create("dev.json")
 
 	tasks := task.Tasks{}
-	tasks.Init(service.DB)
-	cron.Every(1).Minute().Do(tasks.Start)
+	tasks.Init(service.DB, service.Config)
+	cron.Every(1).Minute().Do(tasks.SendNewEmails)
 	<-cron.Start()
 
 	// start API service
