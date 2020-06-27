@@ -6,7 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/greatfocus/gf-frame/jwt"
 	"github.com/greatfocus/gf-frame/validate"
 )
 
@@ -19,8 +18,8 @@ type Message struct {
 	Subject   string    `json:"subject,omitempty"`
 	Content   string    `json:"content,omitempty"`
 	CreatedBy int64     `json:"createdBy,omitempty"`
-	CreatedOn time.Time `json:"createdOn,omitempty"`
-	ExpireOn  time.Time `json:"expireOn,omitempty"`
+	CreatedOn time.Time `json:"-"`
+	ExpireOn  time.Time `json:"-"`
 	StatusID  int64     `json:"statusId,omitempty"`
 	Status    string    `json:"status,omitempty"`
 	Attempts  int64     `json:"attempts,omitempty"`
@@ -41,12 +40,12 @@ func (m *Message) PrepareInput(r *http.Request) error {
 
 	m.CreatedOn = time.Now()
 	m.ExpireOn = expire
-	userID, err := jwt.ExtractTokenID(r)
+	/*userID, err := jwt.ExtractTokenID(r)
 	if err != nil {
 		return errors.New("Invalid token")
-	}
+	}*/
 
-	m.CreatedBy = userID
+	m.CreatedBy = 1
 	return nil
 }
 

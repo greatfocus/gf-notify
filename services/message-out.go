@@ -19,13 +19,14 @@ HERE IS THE LOGIN INVOLVED
 // SendNewEmails
 func SendNewEmails(repo *repositories.MessageRepository, request Request) {
 	params := repositories.MessageParam{
-		ChannelID: 1,
+		ChannelID: 2,
 		StatusID:  1,
+		Page:      1,
 	}
 	log.Println("Fetching Email messages available to send")
 	msgs, err := repo.GetMessages(params)
 	if err != nil {
-		log.Println("No Email messages available to send")
+		log.Println("Error fetching Email messages available to send")
 	} else {
 		queueMessages(repo, msgs, request)
 		SendBulk(request)
@@ -36,13 +37,20 @@ func SendNewEmails(repo *repositories.MessageRepository, request Request) {
 func queueMessages(repo *repositories.MessageRepository, msgs []models.Message, request Request) {
 	log.Println("Updating queued Email messages available to send")
 	var wg sync.WaitGroup
-	for i := 1; i <= len(msgs); i++ {
+	recipient := make([]string, len(msgs))
+	messages := make([]string, len(msgs))
+	for i := 0; i < len(msgs); i++ {
 		wg.Add(1)
 		msgs[i].StatusID = 2
-		request.Messages[i] = msgs[i].Content
-		request.Recipients[i] = msgs[i].Recipient
+		recipient[i] = msgs[i].Recipient
+		messages[i] = msgs[i].Content
+
 		go updateMessage(&wg, repo, msgs[i])
 	}
+
+	request.Recipients = recipient
+	request.Messages = messages
+
 	wg.Wait()
 }
 

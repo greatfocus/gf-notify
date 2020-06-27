@@ -68,7 +68,7 @@ func messageMapper(rows *sql.Rows) ([]models.Message, error) {
 // queryMessages executes to get messages
 func queryMessages(params *QueryParam) ([]models.Message, error) {
 	query := getDatabase(params.Statement, params.Year, params.Month)
-	rows, err := params.Repo.db.Conn.Query(query, params.Args)
+	rows, err := params.Repo.db.Conn.Query(query, params.Args...)
 	if err != nil {
 		return nil, err
 	}

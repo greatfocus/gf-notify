@@ -13,6 +13,8 @@ github.com/greatfocus/gf-frame v0.0.0-20200626082701-13658136065b h1:86mN3RVHwKg
 github.com/greatfocus/gf-frame v0.0.0-20200626082701-13658136065b/go.mod h1:r0qVafM5n1FdeMnXfe+fNIIqpzbecA5yBSG0lIKeZLU=
 github.com/greatfocus/gf-frame v0.0.0-20200626223146-443f1163b616 h1:KsUyZdBLqijJR+l/BPKdIn4U2RK2TxxnhERRNJ/eidA=
 github.com/greatfocus/gf-frame v0.0.0-20200626223146-443f1163b616/go.mod h1:r0qVafM5n1FdeMnXfe+fNIIqpzbecA5yBSG0lIKeZLU=
+github.com/greatfocus/gf-frame v0.0.0-20200627200622-c17b0e46bece h1:bQvVTEvrlBMgp2gAtEnGvBZbQghOhhvMGY3v+hlFIe8=
+github.com/greatfocus/gf-frame v0.0.0-20200627200622-c17b0e46bece/go.mod h1:r0qVafM5n1FdeMnXfe+fNIIqpzbecA5yBSG0lIKeZLU=
 github.com/lib/pq v1.7.0 h1:h93mCPfUSkaul3Ka/VG8uZdmW1uMHDGxzu0NWHuJmHY=
 github.com/lib/pq v1.7.0/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
