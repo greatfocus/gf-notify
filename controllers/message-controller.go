@@ -31,7 +31,7 @@ func (c *MessageController) Handler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		c.getMessages(w, r)
 	case http.MethodPost:
-		c.requestMessage(w, r)
+		c.addMessage(w, r)
 	default:
 		err := errors.New("Invalid Request")
 		responses.Error(w, http.StatusUnprocessableEntity, err)
@@ -39,8 +39,8 @@ func (c *MessageController) Handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getMessages method returns messages
-func (c *MessageController) requestMessage(w http.ResponseWriter, r *http.Request) {
+// addMessage method adds new message
+func (c *MessageController) addMessage(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		derr := errors.New("invalid payload request")
@@ -82,7 +82,7 @@ func (c *MessageController) requestMessage(w http.ResponseWriter, r *http.Reques
 	responses.Success(w, http.StatusCreated, result)
 }
 
-// requestMessage method creates a message request
+// addMessage method creates a message request
 func (c *MessageController) getMessages(w http.ResponseWriter, r *http.Request) {
 	pageStr := r.FormValue("page")
 	statusStr := r.FormValue("statusId")

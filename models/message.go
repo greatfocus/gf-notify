@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/greatfocus/gf-frame/jwt"
+	"github.com/greatfocus/gf-frame/validate"
 )
 
 // Message struct
@@ -64,6 +65,9 @@ func (m *Message) Validate(action string) error {
 		}
 		if m.Content == "" {
 			return errors.New("Required Content")
+		}
+		if !validate.Email(m.Recipient) {
+			return errors.New("Invalid email address")
 		}
 		return nil
 	default:

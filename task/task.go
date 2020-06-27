@@ -24,12 +24,12 @@ func (t *Tasks) Init(db *database.DB, config *config.Config) {
 
 // SendNewEmails intiates the job to send new messages
 func (t *Tasks) SendNewEmails() {
-	log.Println("Scheduler started for new Messages")
+	log.Println("Scheduler started for new Email Messages")
 	request := services.Request{
 		Host: t.config.Email.Host,
 		Port: t.config.Email.Port,
 		From: t.config.Email.From,
 	}
 	services.SendNewEmails(t.messageRepository, request)
-	log.Println("Scheduler stopped for new Messages")
+	log.Println("Scheduler stopped for new Email Messages")
 }

@@ -17,6 +17,7 @@ type Request struct {
 
 // SendBulk initiates sending of the messages
 func SendBulk(email Request) {
+	log.Println("Sending bulk Email messages available to send")
 	var wg sync.WaitGroup
 
 	for i := 1; i <= len(email.Recipients); i++ {

@@ -22,9 +22,10 @@ func SendNewEmails(repo *repositories.MessageRepository, request Request) {
 		ChannelID: 1,
 		StatusID:  1,
 	}
+	log.Println("Fetching Email messages available to send")
 	msgs, err := repo.GetMessages(params)
 	if err != nil {
-		log.Println("No messages available to send")
+		log.Println("No Email messages available to send")
 	} else {
 		queueMessages(repo, msgs, request)
 		SendBulk(request)
@@ -33,6 +34,7 @@ func SendNewEmails(repo *repositories.MessageRepository, request Request) {
 
 // queueMessages update queue messages
 func queueMessages(repo *repositories.MessageRepository, msgs []models.Message, request Request) {
+	log.Println("Updating queued Email messages available to send")
 	var wg sync.WaitGroup
 	for i := 1; i <= len(msgs); i++ {
 		wg.Add(1)
@@ -49,6 +51,6 @@ func updateMessage(wg *sync.WaitGroup, repo *repositories.MessageRepository, mes
 	defer wg.Done()
 	err := repo.UpdateMessage(message)
 	if err != nil {
-		log.Println("Failed to update message with ID", message.ID)
+		log.Println("Failed to update Email message with ID", message.ID)
 	}
 }
