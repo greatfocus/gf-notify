@@ -19,7 +19,7 @@ BEGIN
 		attempts SMALLINT NOT NULL,
 		priority SMALLINT NOT NULL,
 		reference TEXT NOT NULL,
-		PRIMARY KEY (id),		
+		UNIQUE(id),			
 		UNIQUE(id, createdOn)
 	);', yr, mnth);
 END $$;

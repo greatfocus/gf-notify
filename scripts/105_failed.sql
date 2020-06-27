@@ -18,7 +18,7 @@ BEGIN
 		statusId INTEGER REFERENCES status(id),
 		attempts SMALLINT NOT NULL,
 		priority SMALLINT NOT NULL,
-		PRIMARY KEY (id),		
+		UNIQUE(id),		
 		UNIQUE(id, createdOn)
 	);', yr, mnth);
 END $$;

@@ -27,12 +27,15 @@ func usersRoute(mux *http.ServeMux, db *database.DB) {
 	messageController := controllers.MessageController{}
 	messageController.Init(db)
 
-	// Initialize controller
+	messageBulkController := controllers.MessageBulkController{}
+	messageBulkController.Init(db)
+
 	channelController := controllers.ChannelController{}
 	channelController.Init(db)
 
 	// Initialize routes
-	mux.HandleFunc("/api/channels", middlewares.SetMiddlewareJSON(channelController.Handler))
-	mux.HandleFunc("/api/messages", middlewares.SetMiddlewareJSON(messageController.Handler))
+	mux.HandleFunc("/api/channel", middlewares.SetMiddlewareJSON(channelController.Handler))
+	mux.HandleFunc("/api/message", middlewares.SetMiddlewareJSON(messageController.Handler))
+	mux.HandleFunc("/api/message/bulk", middlewares.SetMiddlewareJSON(messageBulkController.Handler))
 	//mux.HandleFunc("/api/dashboard", middlewares.SetMiddlewareJwt(messageController.Handler))
 }

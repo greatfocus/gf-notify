@@ -20,6 +20,7 @@ type Message struct {
 	CreatedBy int64     `json:"createdBy,omitempty"`
 	CreatedOn time.Time `json:"-"`
 	ExpireOn  time.Time `json:"-"`
+	Operation string    `json:"operation,omitempty"`
 	StatusID  int64     `json:"statusId,omitempty"`
 	Status    string    `json:"status,omitempty"`
 	Attempts  int64     `json:"attempts,omitempty"`

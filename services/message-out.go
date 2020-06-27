@@ -24,7 +24,7 @@ func SendNewEmails(repo *repositories.MessageRepository, request Request) {
 		Page:      1,
 	}
 	log.Println("Fetching Email messages available to send")
-	msgs, err := repo.GetMessages(params)
+	msgs, err := repo.GetMessages("queue", params)
 	if err != nil {
 		log.Println("Error fetching Email messages available to send")
 	} else {
@@ -45,7 +45,7 @@ func queueMessages(repo *repositories.MessageRepository, msgs []models.Message, 
 		recipient[i] = msgs[i].Recipient
 		messages[i] = msgs[i].Content
 
-		go updateMessage(&wg, repo, msgs[i])
+		go updateMessage(&wg, repo, "queue", msgs[i])
 	}
 
 	request.Recipients = recipient
@@ -55,9 +55,9 @@ func queueMessages(repo *repositories.MessageRepository, msgs []models.Message, 
 }
 
 // updateMessage change message status
-func updateMessage(wg *sync.WaitGroup, repo *repositories.MessageRepository, message models.Message) {
+func updateMessage(wg *sync.WaitGroup, repo *repositories.MessageRepository, table string, message models.Message) {
 	defer wg.Done()
-	err := repo.UpdateMessage(message)
+	_, err := repo.Update(table, message)
 	if err != nil {
 		log.Println("Failed to update Email message with ID", message.ID)
 	}

@@ -5,12 +5,14 @@ DECLARE
 
 BEGIN
 	CREATE TABLE IF NOT EXISTS dashboard (
+		id BIGSERIAL,
 		year INTEGER NOT NULL,
 		month INTEGER NOT NULL,
 		staging INTEGER NOT NULL,
 		queue INTEGER NOT NULL,
 		complete INTEGER NOT NULL,
-		failed INTEGER NOT NULL
+		failed INTEGER NOT NULL,
+		PRIMARY KEY (id)
 	);
 
 	IF (SELECT count(staging) FROM dashboard WHERE year=yr AND month=mnth) < 1 THEN
