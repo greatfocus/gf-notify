@@ -28,13 +28,13 @@ func SendQueuedEmails(repo *repositories.MessageRepository, request *Request) {
 	if err != nil {
 		log.Println("Scheduler_SendQueuedEmails Error fetching Email queued")
 		return
+	}
+
+	if len(msgs) > 0 {
+		prepareQueueMessages(msgs, request)
+		sendBulkEmails(repo, msgs, request)
 	} else {
-		if len(msgs) > 0 {
-			prepareQueueMessages(msgs, request)
-			sendBulkEmails(repo, msgs, request)
-		} else {
-			log.Println("Scheduler_SendQueuedEmails Email queued is empty")
-		}
+		log.Println("Scheduler_SendQueuedEmails Email queued is empty")
 	}
 }
 
