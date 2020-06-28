@@ -6,5 +6,4 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/greatfocus/gf-frame v0.0.0-20200627200622-c17b0e46bece
 	github.com/lib/pq v1.7.0
-	golang.org/x/crypto v0.0.0-20200604202706-70a84ac30bf9 // indirect
 )

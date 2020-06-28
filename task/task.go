@@ -24,16 +24,18 @@ func (t *Tasks) Init(db *database.DB, config *config.Config) {
 	t.db = db
 }
 
-// SendNewEmails intiates the job to send new messages
-func (t *Tasks) SendNewEmails() {
-	log.Println("Scheduler started for new Email Messages")
+// SendQueuedEmails intiates the job to send queued messages
+func (t *Tasks) SendQueuedEmails() {
+	log.Println("Scheduler_SendQueuedEmails started")
 	request := services.Request{
-		Host: t.config.Email.Host,
-		Port: t.config.Email.Port,
-		From: t.config.Email.From,
+		Host:     t.config.Email.Host,
+		Port:     t.config.Email.Port,
+		From:     t.config.Email.From,
+		User:     t.config.Email.User,
+		Password: t.config.Email.Password,
 	}
-	services.SendNewEmails(t.messageRepository, request)
-	log.Println("Scheduler stopped for new Email Messages")
+	services.SendQueuedEmails(t.messageRepository, &request)
+	log.Println("Scheduler_SendQueuedEmails ended")
 }
 
 /**
@@ -63,7 +65,7 @@ This job is responsible for moving staged messages to the queue
 2. queue are all messages ready for processing
 **/
 func (t *Tasks) MoveStagedToQueue() {
-	log.Println("Scheduler_MoveStagedToQueue initated")
+	log.Println("Scheduler_MoveStagedToQueue started")
 	success, err := t.messageRepository.MoveStagedToQueue()
 	if err != nil && !success {
 		log.Println("Scheduler_RunDatabaseScripts failed")

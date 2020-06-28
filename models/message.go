@@ -25,7 +25,7 @@ type Message struct {
 	Status    string    `json:"status,omitempty"`
 	Attempts  int64     `json:"attempts,omitempty"`
 	Priority  int64     `json:"priority,omitempty"`
-	RefID     int64     `json:"refId,omitempty"`
+	Reference string    `json:"reference,omitempty"`
 }
 
 // PrepareInput initiliazes the Message request object

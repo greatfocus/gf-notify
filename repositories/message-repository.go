@@ -32,6 +32,7 @@ type QueryParam struct {
 type MessageParam struct {
 	ChannelID int64
 	StatusID  int64
+	Attempts  int64
 	Page      int64
 }
 
@@ -153,12 +154,13 @@ func (repo *MessageRepository) GetMessages(table string, messageParam MessagePar
 	from $table m
 	inner join channel c on c.id = m.channelId
 	inner join status s on s.id = m.statusId
-	where channelId = $1 and m.statusId=$2
-	order BY createdOn ASC limit 60 OFFSET $3-1
+	where 
+		channelId = $1 and m.statusId=$2 and m.attempts<$3
+	order BY createdOn ASC limit 100 OFFSET $4-1
 	`
 	// prepare the args
 	var args []interface{}
-	args = append(args, messageParam.ChannelID, messageParam.StatusID, messageParam.Page)
+	args = append(args, messageParam.ChannelID, messageParam.StatusID, messageParam.Attempts, messageParam.Page)
 	queryParams := newQueryParams(table, statement, args, repo)
 	return queryMessages(queryParams)
 }
@@ -191,12 +193,12 @@ func (repo *MessageRepository) Update(table string, message models.Message) (boo
 	set 
 		statusId=$2, 
 		attempts=$3,
-		refId=$4	
+		reference=$4	
     where id=$1
 	`
 
 	var args []interface{}
-	args = append(args, message.ID, message.StatusID, message.Attempts, message.RefID)
+	args = append(args, message.ID, message.StatusID, message.Attempts, message.Reference)
 	query := getTable(table, statement)
 	success, err := update(repo, query, args)
 	if err != nil {
@@ -216,11 +218,11 @@ func (repo *MessageRepository) MoveStagedToQueue() (bool, error) {
 			SELECT ID
 			FROM staging$tt
 			ORDER BY createdOn
-			LIMIT 10)
+			LIMIT 200)
 		RETURNING *
 	)
 	INSERT INTO queue$tt (id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority)
-	SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, 0, priority FROM moved_rows;
+	SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, 2, 0, priority FROM moved_rows;
 	`
 
 	query := getTableTime(statement)

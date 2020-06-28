@@ -18,7 +18,8 @@ func main() {
 	tasks.Init(service.DB, service.Config)
 	cron.Every(1).Sunday().At("8:00").Do(tasks.RunDatabaseScripts)
 	cron.Every(30).Second().Do(tasks.MoveStagedToQueue)
-	// cron.Every(10).Second().Do(tasks.SendNewEmails)
+	// cron.Every(20).Second().Do(tasks.SendQueuedSMS)
+	cron.Every(20).Second().Do(tasks.SendQueuedEmails)
 	cron.Start()
 
 	// start API service
