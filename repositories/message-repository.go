@@ -48,8 +48,20 @@ func getTable(table string, query string) string {
 	year, month, _ := time.Now().Date()
 	yr := strconv.Itoa(year)
 	mnth := strconv.Itoa(int(month))
-	database := table + yr + mnth
-	return strings.Replace(query, "$table", database, -1)
+	tableName := table + yr + mnth
+	return strings.Replace(query, "$table", tableName, -1)
+}
+
+/**
+There are several tables involved in the logic for messaging
+We use this generic function to concatinate the table and date
+**/
+func getTableTime(query string) string {
+	year, month, _ := time.Now().Date()
+	yr := strconv.Itoa(year)
+	mnth := strconv.Itoa(int(month))
+	tt := yr + mnth
+	return strings.Replace(query, "$tt", tt, -1)
 }
 
 // insert adds new  database record
@@ -189,6 +201,32 @@ func (repo *MessageRepository) Update(table string, message models.Message) (boo
 	success, err := update(repo, query, args)
 	if err != nil {
 		return success, err
+	}
+
+	return success, nil
+}
+
+// MoveStagedToQueue runs a script to move data
+func (repo *MessageRepository) MoveStagedToQueue() (bool, error) {
+	success := true
+	statement := `
+    WITH moved_rows AS (
+		DELETE FROM staging$tt
+		WHERE ID IN (
+			SELECT ID
+			FROM staging$tt
+			ORDER BY createdOn
+			LIMIT 10)
+		RETURNING *
+	)
+	INSERT INTO queue$tt (id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority)
+	SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, 0, priority FROM moved_rows;
+	`
+
+	query := getTableTime(statement)
+	_, err := repo.db.Conn.Exec(query)
+	if err != nil {
+		return false, err
 	}
 
 	return success, nil

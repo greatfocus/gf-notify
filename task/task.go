@@ -55,3 +55,19 @@ func (t *Tasks) RunDatabaseScripts() {
 	db.Connect(t.config)
 	log.Println("Scheduler_RunDatabaseScripts ended")
 }
+
+// MoveStagedToQueue ...
+/**
+This job is responsible for moving staged messages to the queue
+1. staged is a tray containing all messages from the api
+2. queue are all messages ready for processing
+**/
+func (t *Tasks) MoveStagedToQueue() {
+	log.Println("Scheduler_MoveStagedToQueue initated")
+	success, err := t.messageRepository.MoveStagedToQueue()
+	if err != nil && !success {
+		log.Println("Scheduler_RunDatabaseScripts failed")
+		return
+	}
+	log.Println("Scheduler_RunDatabaseScripts succeded")
+}
