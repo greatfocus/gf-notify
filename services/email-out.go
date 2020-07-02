@@ -24,7 +24,7 @@ func SendQueuedEmails(repo *repositories.MessageRepository, request *Request) {
 		Page:      1,
 	}
 	log.Println("Scheduler_SendQueuedEmails Fetching Email queued messages")
-	msgs, err := repo.GetMessages("queue", params)
+	msgs, err := repo.PopNewQueueToProcess("queue", params)
 	if err != nil {
 		log.Println("Scheduler_SendQueuedEmails Error fetching Email queued")
 		return

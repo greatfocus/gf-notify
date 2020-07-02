@@ -20,6 +20,8 @@ func main() {
 	cron.Every(30).Second().Do(tasks.MoveStagedToQueue)
 	// cron.Every(20).Second().Do(tasks.SendQueuedSMS)
 	cron.Every(20).Second().Do(tasks.SendQueuedEmails)
+	cron.Every(2).Minute().Do(tasks.MoveOutFailedQueue)
+	cron.Every(2).Minute().Do(tasks.MoveOutCompleteQueue)
 	cron.Start()
 
 	// start API service

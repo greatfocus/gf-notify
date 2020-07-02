@@ -156,7 +156,7 @@ func (repo *MessageRepository) GetMessages(table string, messageParam MessagePar
 	inner join status s on s.id = m.statusId
 	where 
 		channelId = $1 and m.statusId=$2 and m.attempts<$3
-	order BY createdOn ASC limit 100 OFFSET $4-1
+	order BY createdOn ASC limit 500 OFFSET $4-1
 	`
 	// prepare the args
 	var args []interface{}
@@ -208,6 +208,30 @@ func (repo *MessageRepository) Update(table string, message models.Message) (boo
 	return success, nil
 }
 
+// PopNewQueueToProcess runs a script to move data
+func (repo *MessageRepository) PopNewQueueToProcess(table string, messageParam MessageParam) ([]models.Message, error) {
+	statement := `
+	WITH cte AS (
+		select m.id, m.channelId, c.name as channel, m.recipient, m.subject, m.content, m.createdBy, m.createdOn, m.expireOn, m.statusId, s.name as status, m.attempts, m.priority 
+		from $table m
+		inner join channel c on c.id = m.channelId
+		inner join status s on s.id = m.statusId
+		where 
+			m.channelId = $1 and m.statusId=$2 and m.attempts<$3
+		order BY m.createdOn ASC limit 500 OFFSET $4-1
+	)	
+	update $table q
+	set statusId = 3
+	from cte
+	where q.id=cte.id];
+	`
+	// prepare the args
+	var args []interface{}
+	args = append(args, messageParam.ChannelID, messageParam.StatusID, messageParam.Attempts, messageParam.Page)
+	queryParams := newQueryParams(table, statement, args, repo)
+	return queryMessages(queryParams)
+}
+
 // MoveStagedToQueue runs a script to move data
 func (repo *MessageRepository) MoveStagedToQueue() (bool, error) {
 	success := true
@@ -218,11 +242,67 @@ func (repo *MessageRepository) MoveStagedToQueue() (bool, error) {
 			SELECT ID
 			FROM staging$tt
 			ORDER BY createdOn
-			LIMIT 200)
+			LIMIT 500)
 		RETURNING *
 	)
 	INSERT INTO queue$tt (id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority)
 	SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, 2, 0, priority FROM moved_rows;
+	`
+
+	query := getTableTime(statement)
+	_, err := repo.db.Conn.Exec(query)
+	if err != nil {
+		return false, err
+	}
+
+	return success, nil
+}
+
+// MoveOutFailedQueue runs a script to move data
+func (repo *MessageRepository) MoveOutFailedQueue() (bool, error) {
+	success := true
+	statement := `
+    WITH moved_rows AS (
+		DELETE FROM queue$tt
+		WHERE ID IN (
+			SELECT ID
+			FROM queue$tt
+			WHERE attempts >= 5
+			ORDER BY createdOn
+			LIMIT 500)
+		RETURNING *
+	)
+	INSERT INTO failed$tt (id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference)
+	SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows;
+	`
+
+	query := getTableTime(statement)
+	_, err := repo.db.Conn.Exec(query)
+	if err != nil {
+		return false, err
+	}
+
+	return success, nil
+}
+
+// MoveOutCompleteQueue runs a script to move data
+func (repo *MessageRepository) MoveOutCompleteQueue() (bool, error) {
+	success := true
+	statement := `
+    WITH moved_rows AS (
+		DELETE FROM queue$tt
+		WHERE ID IN (
+			SELECT ID
+			FROM queue$tt
+			WHERE 
+				attempts < 5
+				AND statusId=4
+			ORDER BY createdOn
+			LIMIT 500)
+		RETURNING *
+	)
+	INSERT INTO failed$tt (id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference)
+	SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows;
 	`
 
 	query := getTableTime(statement)

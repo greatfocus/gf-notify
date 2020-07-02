@@ -68,8 +68,40 @@ func (t *Tasks) MoveStagedToQueue() {
 	log.Println("Scheduler_MoveStagedToQueue started")
 	success, err := t.messageRepository.MoveStagedToQueue()
 	if err != nil && !success {
-		log.Println("Scheduler_RunDatabaseScripts failed")
+		log.Println("Scheduler_MoveStagedToQueue failed")
 		return
 	}
-	log.Println("Scheduler_RunDatabaseScripts succeded")
+	log.Println("Scheduler_MoveStagedToQueue succeded")
+}
+
+// MoveOutFailedQueue ...
+/**
+This job is responsible for moving failed messages to the failed
+1. queue is a tray containing all messages been sent out
+2. failed are all messages that failed to sent with attempt greater >= 5
+**/
+func (t *Tasks) MoveOutFailedQueue() {
+	log.Println("Scheduler_MoveOutFailedQueue started")
+	success, err := t.messageRepository.MoveStagedToQueue()
+	if err != nil && !success {
+		log.Println("Scheduler_MoveOutFailedQueue failed")
+		return
+	}
+	log.Println("Scheduler_MoveOutFailedQueue succeded")
+}
+
+// MoveOutCompleteQueue ...
+/**
+This job is responsible for moving completed messages to the complete
+1. queue is a tray containing all messages been sent out
+2. completed are all messages that succeded to sent with attempt less < 5
+**/
+func (t *Tasks) MoveOutCompleteQueue() {
+	log.Println("Scheduler_MoveOutCompleteQueue started")
+	success, err := t.messageRepository.MoveOutCompleteQueue()
+	if err != nil && !success {
+		log.Println("Scheduler_MoveOutCompleteQueue failed")
+		return
+	}
+	log.Println("Scheduler_MoveOutCompleteQueue succeded")
 }
