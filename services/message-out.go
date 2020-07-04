@@ -16,7 +16,7 @@ HERE IS THE LOGIN INVOLVED
 3. Send email for the messages in bulks of number of seconds
 4. Update the messages status incase of any failure or success
 **/
-func SendQueuedEmails(repo *repositories.MessageRepository, request *Request) {
+func SendQueuedEmails(repo *repositories.MessageRepository, request *EmailRequest) {
 	params := repositories.MessageParam{
 		ChannelID: 2,
 		StatusID:  2,
@@ -24,14 +24,14 @@ func SendQueuedEmails(repo *repositories.MessageRepository, request *Request) {
 		Page:      1,
 	}
 	log.Println("Scheduler_SendQueuedEmails Fetching Email queued messages")
-	msgs, err := repo.PopNewQueueToProcess("queue", params)
+	msgs, err := repo.GetMessages("queue", params)
 	if err != nil {
 		log.Println("Scheduler_SendQueuedEmails Error fetching Email queued")
 		return
 	}
 
 	if len(msgs) > 0 {
-		prepareQueueMessages(msgs, request)
+		prepareQueueMessages(repo, msgs, request)
 		sendBulkEmails(repo, msgs, request)
 	} else {
 		log.Println("Scheduler_SendQueuedEmails Email queued is empty")
@@ -39,27 +39,31 @@ func SendQueuedEmails(repo *repositories.MessageRepository, request *Request) {
 }
 
 // prepareQueueMessages creates post model
-func prepareQueueMessages(msgs []models.Message, request *Request) {
+func prepareQueueMessages(repo *repositories.MessageRepository, msgs []models.Message, request *EmailRequest) {
+	var args []interface{}
 	recipient := make([]string, len(msgs))
 	messages := make([]string, len(msgs))
 	status := make([]bool, len(msgs))
 	for i := 0; i < len(msgs); i++ {
 		recipient[i] = msgs[i].Recipient
 		messages[i] = msgs[i].Content
+		args = append(args, msgs[i].ID)
 	}
 	request.Recipients = recipient
 	request.Messages = messages
 	request.Status = status
+
+	repo.UpdateQueueToProcessing("queue", args)
 }
 
 // SendBulk initiates sending of the messages
-func sendBulkEmails(repo *repositories.MessageRepository, msgs []models.Message, email *Request) {
+func sendBulkEmails(repo *repositories.MessageRepository, msgs []models.Message, email *EmailRequest) {
 	log.Println("Scheduler_SendQueuedEmails Sending bulk Email messages")
 	var wg sync.WaitGroup
 
 	for i := 0; i < len(email.Recipients); i++ {
 		wg.Add(1)
-		go Send(i, email, &wg)
+		go SendMail(i, email, &wg)
 	}
 
 	wg.Wait()
@@ -67,7 +71,7 @@ func sendBulkEmails(repo *repositories.MessageRepository, msgs []models.Message,
 }
 
 // updateMessage change message status
-func updateQueueEmail(repo *repositories.MessageRepository, msgs []models.Message, email *Request) {
+func updateQueueEmail(repo *repositories.MessageRepository, msgs []models.Message, email *EmailRequest) {
 	for i := 0; i < len(email.Recipients); i++ {
 		// check status of email sent
 		trial := msgs[i].Attempts + 1

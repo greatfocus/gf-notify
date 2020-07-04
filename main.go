@@ -17,11 +17,11 @@ func main() {
 	tasks := task.Tasks{}
 	tasks.Init(service.DB, service.Config)
 	cron.Every(1).Sunday().At("8:00").Do(tasks.RunDatabaseScripts)
-	cron.Every(30).Second().Do(tasks.MoveStagedToQueue)
-	// cron.Every(20).Second().Do(tasks.SendQueuedSMS)
-	cron.Every(20).Second().Do(tasks.SendQueuedEmails)
-	cron.Every(2).Minute().Do(tasks.MoveOutFailedQueue)
-	cron.Every(2).Minute().Do(tasks.MoveOutCompleteQueue)
+	cron.Every(20).Second().Do(tasks.MoveStagedToQueue)
+	//cron.Every(20).Second().Do(tasks.SendQueuedSMS)
+	cron.Every(10).Second().Do(tasks.SendQueuedEmails)
+	cron.Every(1).Minute().Do(tasks.MoveOutFailedQueue)
+	cron.Every(1).Minute().Do(tasks.MoveOutCompleteQueue)
 	cron.Start()
 
 	// start API service

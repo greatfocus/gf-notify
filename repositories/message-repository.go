@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -21,8 +22,8 @@ type MessageRepository struct {
 // QueryParam struct
 type QueryParam struct {
 	Table     string
-	Month     int
-	Year      int
+	Month     string
+	Year      string
 	Statement string
 	Args      []interface{}
 	Repo      *MessageRepository
@@ -41,58 +42,40 @@ func (repo *MessageRepository) Init(db *database.DB) {
 	repo.db = db
 }
 
-/**
-There are several tables involved in the logic for messaging
-We use this generic function to concatinate the table and date
-**/
-func getTable(table string, query string) string {
-	year, month, _ := time.Now().Date()
-	yr := strconv.Itoa(year)
-	mnth := strconv.Itoa(int(month))
-	tableName := table + yr + mnth
-	return strings.Replace(query, "$table", tableName, -1)
+// getYearAndMonth returns the year and month
+func getYearAndMonth() (y string, m string) {
+	date := time.Now()
+	year := date.Year()
+	month := int(date.Month())
+	y = strconv.Itoa(year)
+	m = strconv.Itoa(int(month))
+	return y, m
 }
 
 /**
 There are several tables involved in the logic for messaging
 We use this generic function to concatinate the table and date
 **/
-func getTableTime(query string) string {
-	year, month, _ := time.Now().Date()
-	yr := strconv.Itoa(year)
-	mnth := strconv.Itoa(int(month))
-	tt := yr + mnth
+func getTable(name string) string {
+	year, month := getYearAndMonth()
+	tableName := name + year + month
+	return tableName
+}
+
+/**
+There are several tables involved in the logic for messaging
+We use this generic function to concatinate the table and date
+**/
+func replaceTimeHolder(query string) string {
+	year, month := getYearAndMonth()
+	tt := year + month
 	return strings.Replace(query, "$tt", tt, -1)
 }
 
-// insert adds new  database record
-func insert(repo *MessageRepository, query string, args []interface{}) (int64, error) {
-	var id int64
-	err := repo.db.Conn.QueryRow(query, args...).Scan(&id)
-	if err != nil {
-		return 0, err
-	}
-	return id, nil
-}
-
-// update makes changes to database record
-func update(repo *MessageRepository, query string, args []interface{}) (bool, error) {
-	res, err := repo.db.Conn.Exec(query, args...)
-	if err != nil {
-		return false, err
-	}
-
-	count, err := res.RowsAffected()
-	if err != nil {
-		return false, err
-	}
-
-	if count != 1 {
-		err = errors.New("more than 1 record got updated")
-		return false, err
-	}
-
-	return true, nil
+// replaceTableHolder change holder with table name
+func replaceTableHolder(name string, statement string) string {
+	table := getTable(name)
+	return strings.Replace(statement, "$table", table, -1)
 }
 
 // messageMapper prepare message row to object
@@ -112,10 +95,39 @@ func messageMapper(rows *sql.Rows) ([]models.Message, error) {
 	return messages, nil
 }
 
+// insert adds new  database record
+func insert(params *QueryParam) (int64, error) {
+	var id int64
+	err := params.Repo.db.Conn.QueryRow(params.Statement, params.Args...).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+
+// update makes changes to database record
+func update(params *QueryParam, rowCount int64) (bool, error) {
+	res, err := params.Repo.db.Conn.Exec(params.Statement, params.Args...)
+	if err != nil {
+		return false, err
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	if count != rowCount {
+		err = errors.New("Records updated more than the expected")
+		return false, err
+	}
+
+	return true, nil
+}
+
 // queryMessages executes to get messages
-func queryMessages(params *QueryParam) ([]models.Message, error) {
-	query := getTable(params.Table, params.Statement)
-	rows, err := params.Repo.db.Conn.Query(query, params.Args...)
+func query(params *QueryParam) ([]models.Message, error) {
+	rows, err := params.Repo.db.Conn.Query(params.Statement, params.Args...)
 	if err != nil {
 		return nil, err
 	}
@@ -138,12 +150,19 @@ func newQueryParams(table string, statement string, args []interface{}, repo *Me
 	}
 }
 
-// getYearAndMonth returns the year and month
-func getYearAndMonth() (year int, month int) {
-	date := time.Now()
-	year = date.Year()
-	month = int(date.Month())
-	return year, month
+// prepareInStatement for creating in statement
+func prepareInStatement(arg []interface{}) string {
+	statement := "("
+	for i := 0; i < len(arg); i++ {
+		statement = statement + fmt.Sprintf("%v", arg[i])
+		record := (i + 1)
+		if record == len(arg) {
+			statement = statement + ")"
+		} else {
+			statement = statement + ","
+		}
+	}
+	return statement
 }
 
 // GetMessages method returns messages from the database
@@ -161,8 +180,8 @@ func (repo *MessageRepository) GetMessages(table string, messageParam MessagePar
 	// prepare the args
 	var args []interface{}
 	args = append(args, messageParam.ChannelID, messageParam.StatusID, messageParam.Attempts, messageParam.Page)
-	queryParams := newQueryParams(table, statement, args, repo)
-	return queryMessages(queryParams)
+	queryParams := newQueryParams(table, replaceTableHolder(table, statement), args, repo)
+	return query(queryParams)
 }
 
 // Add method created new message request
@@ -176,8 +195,8 @@ func (repo *MessageRepository) Add(table string, message models.Message) (models
 	var args []interface{}
 	args = append(args, message.ChannelID, message.Recipient, message.Subject, message.Content,
 		message.CreatedBy, message.CreatedOn, message.ExpireOn, message.StatusID, message.Priority)
-	query := getTable(table, statement)
-	id, err := insert(repo, query, args)
+	queryParams := newQueryParams(table, replaceTableHolder(table, statement), args, repo)
+	id, err := insert(queryParams)
 	if err != nil {
 		return message, err
 	}
@@ -199,8 +218,8 @@ func (repo *MessageRepository) Update(table string, message models.Message) (boo
 
 	var args []interface{}
 	args = append(args, message.ID, message.StatusID, message.Attempts, message.Reference)
-	query := getTable(table, statement)
-	success, err := update(repo, query, args)
+	queryParams := newQueryParams(table, replaceTableHolder(table, statement), args, repo)
+	success, err := update(queryParams, 1)
 	if err != nil {
 		return success, err
 	}
@@ -208,28 +227,24 @@ func (repo *MessageRepository) Update(table string, message models.Message) (boo
 	return success, nil
 }
 
-// PopNewQueueToProcess runs a script to move data
-func (repo *MessageRepository) PopNewQueueToProcess(table string, messageParam MessageParam) ([]models.Message, error) {
+// UpdateQueueToProcessing method make changes to message
+func (repo *MessageRepository) UpdateQueueToProcessing(table string, args []interface{}) (bool, error) {
 	statement := `
-	WITH cte AS (
-		select m.id, m.channelId, c.name as channel, m.recipient, m.subject, m.content, m.createdBy, m.createdOn, m.expireOn, m.statusId, s.name as status, m.attempts, m.priority 
-		from $table m
-		inner join channel c on c.id = m.channelId
-		inner join status s on s.id = m.statusId
-		where 
-			m.channelId = $1 and m.statusId=$2 and m.attempts<$3
-		order BY m.createdOn ASC limit 500 OFFSET $4-1
-	)	
-	update $table q
-	set statusId = 3
-	from cte
-	where q.id=cte.id];
+    update queue$tt
+	set 
+		statusId=3
+    where id IN $IN
 	`
-	// prepare the args
-	var args []interface{}
-	args = append(args, messageParam.ChannelID, messageParam.StatusID, messageParam.Attempts, messageParam.Page)
-	queryParams := newQueryParams(table, statement, args, repo)
-	return queryMessages(queryParams)
+	newArgs := prepareInStatement(args)
+	query := strings.Replace(statement, "$IN", newArgs, -1)
+	qry := replaceTimeHolder(query)
+	queryParams := newQueryParams(table, replaceTableHolder(table, qry), nil, repo)
+	success, err := update(queryParams, int64(len(args)))
+	if err != nil {
+		return success, err
+	}
+
+	return success, nil
 }
 
 // MoveStagedToQueue runs a script to move data
@@ -249,7 +264,7 @@ func (repo *MessageRepository) MoveStagedToQueue() (bool, error) {
 	SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, 2, 0, priority FROM moved_rows;
 	`
 
-	query := getTableTime(statement)
+	query := replaceTimeHolder(statement)
 	_, err := repo.db.Conn.Exec(query)
 	if err != nil {
 		return false, err
@@ -276,7 +291,7 @@ func (repo *MessageRepository) MoveOutFailedQueue() (bool, error) {
 	SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows;
 	`
 
-	query := getTableTime(statement)
+	query := replaceTimeHolder(statement)
 	_, err := repo.db.Conn.Exec(query)
 	if err != nil {
 		return false, err
@@ -305,7 +320,7 @@ func (repo *MessageRepository) MoveOutCompleteQueue() (bool, error) {
 	SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows;
 	`
 
-	query := getTableTime(statement)
+	query := replaceTimeHolder(statement)
 	_, err := repo.db.Conn.Exec(query)
 	if err != nil {
 		return false, err

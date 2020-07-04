@@ -6,8 +6,8 @@ import (
 	"sync"
 )
 
-// Request struct
-type Request struct {
+// EmailRequest struct
+type EmailRequest struct {
 	Host       string
 	Port       string
 	User       string
@@ -18,10 +18,9 @@ type Request struct {
 	Status     []bool
 }
 
-// Send initiates sending of the messages
-func Send(i int, email *Request, wg *sync.WaitGroup) bool {
+// SendMail initiates sending of the email
+func SendMail(i int, email *EmailRequest, wg *sync.WaitGroup) {
 	sent := true
-	defer wg.Done()
 	// hostname is used by PlainAuth to validate the TLS certificate.
 	to := []string{email.Recipients[i]}
 	msg := []byte(email.Messages[i])
@@ -32,5 +31,5 @@ func Send(i int, email *Request, wg *sync.WaitGroup) bool {
 		sent = false
 	}
 	email.Status[i] = sent
-	return sent
+	wg.Done()
 }
