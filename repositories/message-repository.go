@@ -282,7 +282,7 @@ func (repo *MessageRepository) MoveOutFailedQueue() (bool, error) {
 		WHERE ID IN (
 			SELECT ID
 			FROM queue$tt
-			WHERE attempts >= 5
+			WHERE statusid=5
 			ORDER BY createdOn
 			LIMIT 500)
 		RETURNING *
@@ -309,14 +309,12 @@ func (repo *MessageRepository) MoveOutCompleteQueue() (bool, error) {
 		WHERE ID IN (
 			SELECT ID
 			FROM queue$tt
-			WHERE 
-				attempts < 5
-				AND statusId=4
+			WHERE statusId=4
 			ORDER BY createdOn
 			LIMIT 500)
 		RETURNING *
 	)
-	INSERT INTO failed$tt (id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference)
+	INSERT INTO complete$tt (id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference)
 	SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows;
 	`
 

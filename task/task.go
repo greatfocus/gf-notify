@@ -82,7 +82,7 @@ This job is responsible for moving failed messages to the failed
 **/
 func (t *Tasks) MoveOutFailedQueue() {
 	log.Println("Scheduler_MoveOutFailedQueue started")
-	success, err := t.messageRepository.MoveStagedToQueue()
+	success, err := t.messageRepository.MoveOutFailedQueue()
 	if err != nil && !success {
 		log.Println("Scheduler_MoveOutFailedQueue failed")
 		return
