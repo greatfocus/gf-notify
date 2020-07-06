@@ -74,6 +74,22 @@ func (t *Tasks) MoveStagedToQueue() {
 	log.Println("Scheduler_MoveStagedToQueue succeded")
 }
 
+// ReQueueProcessingEmails ...
+/**
+This job is responsible for re-queueing messages that have been processing for more than 10mins
+1. This may occur due to service being stopped
+2. or panic error withing golang
+**/
+func (t *Tasks) ReQueueProcessingEmails() {
+	log.Println("Scheduler_ReQueueProcessingEmails started")
+	success, err := t.messageRepository.ReQueueProcessingEmails()
+	if err != nil && !success {
+		log.Println("Scheduler_ReQueueProcessingEmails failed")
+		return
+	}
+	log.Println("Scheduler_ReQueueProcessingEmails succeded")
+}
+
 // MoveOutFailedQueue ...
 /**
 This job is responsible for moving failed messages to the failed

@@ -35,6 +35,7 @@ func SendMail(i int, email *EmailRequest, auth smtp.Auth, wg *sync.WaitGroup) {
 		"\r\n" +
 		email.Messages[i] + ".\r\n")
 
+	// Please watch out here not to have golang panic error. This means there might be some jobs in progres that may never resolve
 	err := smtp.SendMail(email.Host+":"+email.Port, auth, email.From, to, msg)
 	if err != nil {
 		log.Println(err)

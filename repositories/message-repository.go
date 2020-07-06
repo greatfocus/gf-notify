@@ -283,6 +283,23 @@ func (repo *MessageRepository) MoveStagedToQueue() (bool, error) {
 	return success, nil
 }
 
+// ReQueueProcessingEmails runs a script to move data
+func (repo *MessageRepository) ReQueueProcessingEmails() (bool, error) {
+	success := true
+	statement := `
+		UPDATE queue$tt
+		SET statusid=2
+		WHERE statusid=3 and EXTRACT(MINUTE FROM updatedOn) > 10;
+	`
+	query := replaceTimeHolder(statement)
+	_, err := repo.db.Conn.Exec(query)
+	if err != nil {
+		return false, err
+	}
+
+	return success, nil
+}
+
 // MoveOutFailedQueue runs a script to move data
 func (repo *MessageRepository) MoveOutFailedQueue() (bool, error) {
 	success := true
