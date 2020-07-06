@@ -64,9 +64,10 @@ func sendBulkEmails(repo *repositories.MessageRepository, msgs []models.Message,
 	log.Println("Scheduler_SendQueuedEmails Sending bulk Email messages")
 	var wg sync.WaitGroup
 
+	var auth = Auth(email)
 	for i := 0; i < len(email.Recipients); i++ {
 		wg.Add(1)
-		go SendMail(i, email, &wg)
+		go SendMail(i, email, auth, &wg)
 	}
 
 	wg.Wait()
