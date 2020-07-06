@@ -251,17 +251,27 @@ func (repo *MessageRepository) UpdateQueueToProcessing(table string, args []inte
 func (repo *MessageRepository) MoveStagedToQueue() (bool, error) {
 	success := true
 	statement := `
-    WITH moved_rows AS (
-		DELETE FROM staging$tt
-		WHERE ID IN (
-			SELECT ID
-			FROM staging$tt
-			ORDER BY createdOn
-			LIMIT 500)
-		RETURNING *
-	)
-	INSERT INTO queue$tt (id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority)
-	SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, 2, 0, priority FROM moved_rows;
+	DO $$ 
+	DECLARE
+		mnth SMALLINT := (SELECT EXTRACT(MONTH FROM CURRENT_TIMESTAMP));
+		yr SMALLINT := (SELECT EXTRACT(YEAR FROM CURRENT_TIMESTAMP));
+	BEGIN
+		WITH moved_rows AS (
+			DELETE FROM staging$tt
+			WHERE ID IN (
+				SELECT ID
+				FROM staging$tt
+				ORDER BY createdOn
+				LIMIT 500)
+			RETURNING *
+		), insert_moved_rows AS (
+			INSERT INTO queue$tt (id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority)
+			SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, 2, 0, priority FROM moved_rows
+		)		
+		UPDATE dashboard
+		SET queue = queue + (SELECT COUNT(ID) FROM moved_rows), staging = staging + (SELECT COUNT(ID) FROM moved_rows)
+		WHERE year = yr AND mnth = mnth;
+	END $$;
 	`
 
 	query := replaceTimeHolder(statement)
@@ -277,18 +287,29 @@ func (repo *MessageRepository) MoveStagedToQueue() (bool, error) {
 func (repo *MessageRepository) MoveOutFailedQueue() (bool, error) {
 	success := true
 	statement := `
-    WITH moved_rows AS (
-		DELETE FROM queue$tt
-		WHERE ID IN (
-			SELECT ID
-			FROM queue$tt
-			WHERE statusid=5
-			ORDER BY createdOn
-			LIMIT 500)
-		RETURNING *
-	)
-	INSERT INTO failed$tt (id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference)
-	SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows;
+	DO $$ 
+	DECLARE
+		mnth SMALLINT := (SELECT EXTRACT(MONTH FROM CURRENT_TIMESTAMP));
+		yr SMALLINT := (SELECT EXTRACT(YEAR FROM CURRENT_TIMESTAMP));
+
+	BEGIN
+		WITH moved_rows AS (
+			DELETE FROM queue$tt
+			WHERE ID IN (
+				SELECT ID
+				FROM queue$tt
+				WHERE statusid=5
+				ORDER BY createdOn
+				LIMIT 500)
+			RETURNING *
+		), insert_moved_rows AS (
+			INSERT INTO failed$tt (id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference)
+			SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows
+		)
+		UPDATE dashboard
+		SET failed = failed + (SELECT COUNT(ID) FROM moved_rows)
+		WHERE year = yr AND mnth = mnth;
+	END $$;
 	`
 
 	query := replaceTimeHolder(statement)
@@ -304,18 +325,29 @@ func (repo *MessageRepository) MoveOutFailedQueue() (bool, error) {
 func (repo *MessageRepository) MoveOutCompleteQueue() (bool, error) {
 	success := true
 	statement := `
-    WITH moved_rows AS (
-		DELETE FROM queue$tt
-		WHERE ID IN (
-			SELECT ID
-			FROM queue$tt
-			WHERE statusId=4
-			ORDER BY createdOn
-			LIMIT 500)
-		RETURNING *
-	)
-	INSERT INTO complete$tt (id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference)
-	SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows;
+	DO $$ 
+	DECLARE
+		mnth SMALLINT := (SELECT EXTRACT(MONTH FROM CURRENT_TIMESTAMP));
+		yr SMALLINT := (SELECT EXTRACT(YEAR FROM CURRENT_TIMESTAMP));
+
+	BEGIN
+		WITH moved_rows AS (
+			DELETE FROM queue$tt
+			WHERE ID IN (
+				SELECT ID
+				FROM queue$tt
+				WHERE statusId=4
+				ORDER BY createdOn
+				LIMIT 500)
+			RETURNING *
+		), insert_moved_rows AS (
+			INSERT INTO complete$tt (id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference)
+			SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows
+		)
+		UPDATE dashboard
+		SET complete = complete + (SELECT COUNT(ID) FROM moved_rows)
+		WHERE year = yr AND mnth = mnth;
+	END $$;
 	`
 
 	query := replaceTimeHolder(statement)

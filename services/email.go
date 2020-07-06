@@ -13,6 +13,7 @@ type EmailRequest struct {
 	User       string
 	Password   string
 	From       string
+	Subjects   []string
 	Messages   []string
 	Recipients []string
 	Status     []bool
@@ -23,7 +24,10 @@ func SendMail(i int, email *EmailRequest, wg *sync.WaitGroup) {
 	sent := true
 	// hostname is used by PlainAuth to validate the TLS certificate.
 	to := []string{email.Recipients[i]}
-	msg := []byte(email.Messages[i])
+	msg := []byte("To: " + to[i] + "\r\n" +
+		"Subject: " + email.Subjects[i] + "\r\n" +
+		"\r\n" +
+		email.Messages[i] + ".\r\n")
 	auth := smtp.PlainAuth("", email.User, email.Password, email.Host)
 	err := smtp.SendMail(email.Host+":"+email.Port, auth, email.From, to, msg)
 	if err != nil {

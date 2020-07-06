@@ -42,14 +42,17 @@ func SendQueuedEmails(repo *repositories.MessageRepository, request *EmailReques
 func prepareQueueMessages(repo *repositories.MessageRepository, msgs []models.Message, request *EmailRequest) {
 	var args []interface{}
 	recipient := make([]string, len(msgs))
+	subjects := make([]string, len(msgs))
 	messages := make([]string, len(msgs))
 	status := make([]bool, len(msgs))
 	for i := 0; i < len(msgs); i++ {
 		recipient[i] = msgs[i].Recipient
 		messages[i] = msgs[i].Content
+		subjects[i] = msgs[i].Subject
 		args = append(args, msgs[i].ID)
 	}
 	request.Recipients = recipient
+	request.Subjects = subjects
 	request.Messages = messages
 	request.Status = status
 
