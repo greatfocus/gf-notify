@@ -33,9 +33,13 @@ func usersRoute(mux *http.ServeMux, db *database.DB) {
 	channelController := controllers.ChannelController{}
 	channelController.Init(db)
 
+	gfuserController := controllers.GFUserController{}
+	gfuserController.Init(db)
+
 	// Initialize routes
 	mux.HandleFunc("/api/channel", middlewares.SetMiddlewareJSON(channelController.Handler))
 	mux.HandleFunc("/api/message", middlewares.SetMiddlewareJSON(messageController.Handler))
 	mux.HandleFunc("/api/message/bulk", middlewares.SetMiddlewareJSON(messageBulkController.Handler))
+	mux.HandleFunc("/api/gf-user", middlewares.SetMiddlewareJSON(gfuserController.Handler))
 	//mux.HandleFunc("/api/dashboard", middlewares.SetMiddlewareJwt(messageController.Handler))
 }

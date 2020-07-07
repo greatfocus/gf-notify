@@ -47,7 +47,7 @@ func (repo *ChannelRepository) UpdateChannel(channel models.Channel) error {
 // GetChannels method returns channels from the database
 func (repo *ChannelRepository) GetChannels() ([]models.Channel, error) {
 	query := `
-	select id, name, staticName, priority, updateBy, updateOn, enabled 
+	select id, name, staticName, priority, updatedBy, updatedOn, enabled 
 	from channel 
 	order BY id ASC
 	`
