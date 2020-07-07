@@ -324,7 +324,9 @@ func (repo *MessageRepository) MoveOutFailedQueue() (bool, error) {
 			SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows
 		)
 		UPDATE dashboard
-		SET failed = failed + (SELECT COUNT(ID) FROM moved_rows)
+		SET 
+			failed = failed + (SELECT COUNT(ID) FROM moved_rows),
+			queue = queue - (SELECT COUNT(ID) FROM moved_rows)
 		WHERE year = yr AND mnth = mnth;
 	END $$;
 	`
@@ -362,7 +364,9 @@ func (repo *MessageRepository) MoveOutCompleteQueue() (bool, error) {
 			SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows
 		)
 		UPDATE dashboard
-		SET complete = complete + (SELECT COUNT(ID) FROM moved_rows)
+		SET 
+			complete = complete + (SELECT COUNT(ID) FROM moved_rows),
+			queue = queue - (SELECT COUNT(ID) FROM moved_rows)
 		WHERE year = yr AND mnth = mnth;
 	END $$;
 	`

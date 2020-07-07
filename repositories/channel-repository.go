@@ -47,7 +47,7 @@ func (repo *ChannelRepository) UpdateChannel(channel models.Channel) error {
 // GetChannels method returns channels from the database
 func (repo *ChannelRepository) GetChannels() ([]models.Channel, error) {
 	query := `
-	select id, name, staticName, priority, updatedBy, updatedOn, enabled 
+	select id, name, staticName, priority, createdOn, updatedOn, enabled 
 	from channel 
 	order BY id ASC
 	`
@@ -65,7 +65,7 @@ func channelMapper(rows *sql.Rows) ([]models.Channel, error) {
 	channels := []models.Channel{}
 	for rows.Next() {
 		var channel models.Channel
-		err := rows.Scan(&channel.ID, &channel.Name, &channel.StaticName, &channel.Priority, &channel.UpdatedBy, &channel.UpdatedOn)
+		err := rows.Scan(&channel.ID, &channel.Name, &channel.StaticName, &channel.Priority, &channel.CreatedOn, &channel.UpdatedOn, &channel.Enabled)
 		if err != nil {
 			return nil, err
 		}

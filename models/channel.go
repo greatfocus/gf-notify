@@ -15,6 +15,8 @@ type Channel struct {
 	Name       string    `json:"name,omitempty"`
 	StaticName string    `json:"staticName,omitempty"`
 	Priority   int64     `json:"priority,omitempty"`
+	CreatedBy  int64     `json:"createdBy,omitempty"`
+	CreatedOn  time.Time `json:"createdOn,omitempty"`
 	UpdatedBy  int64     `json:"updatedBy,omitempty"`
 	UpdatedOn  time.Time `json:"updatedOn,omitempty"`
 	Enabled    bool      `json:"enabled,omitempty"`
