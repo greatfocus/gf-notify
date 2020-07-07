@@ -2,11 +2,8 @@ package models
 
 import (
 	"errors"
-	"net/http"
 	"strings"
 	"time"
-
-	"github.com/greatfocus/gf-frame/jwt"
 )
 
 // Template struct
@@ -26,56 +23,68 @@ type Template struct {
 }
 
 // PrepareTempate initiliazes the Template request object
-func (c *Template) PrepareTempate(r *http.Request) error {
-	c.UpdatedOn = time.Now()
-	c.CreatedOn = time.Now()
+func (t *Template) PrepareTempate() error {
+	t.UpdatedOn = time.Now()
+	t.CreatedOn = time.Now()
 
-	userID, err := jwt.ExtractTokenID(r)
-	if err != nil {
-		return errors.New("Invalid token")
-	}
-
-	c.CreatedBy = userID
-	c.UpdatedBy = userID
+	// TODO:consider making API call to users
+	t.CreatedBy = 1
+	t.UpdatedBy = 1
 	return nil
 }
 
 // ValidateTemplate check if request is valid
-func (c *Template) ValidateTemplate(action string) error {
+func (t *Template) ValidateTemplate(action string) error {
 	switch strings.ToLower(action) {
-	case "update":
-		if c.ID == 0 {
+	case "edit":
+		if t.ID == 0 {
 			return errors.New("Required ID")
 		}
-		if c.Name == "" {
+		if t.Name == "" {
 			return errors.New("Required Name")
 		}
-		if c.StaticName == "" {
+		if t.StaticName == "" {
 			return errors.New("Required StaticName")
 		}
-		if c.Subject == "" {
+		if t.Subject == "" {
 			return errors.New("Required Subject")
 		}
-		if c.Body == "" {
+		if t.Body == "" {
 			return errors.New("Required Body")
+		}
+		if int64(strings.Count(t.Body, "$")) != t.ParamsCount {
+			return errors.New("Parameters required don't match")
 		}
 		return nil
 
 	case "add":
-		if c.Name == "" {
+		if t.Name == "" {
 			return errors.New("Required Name")
 		}
-		if c.StaticName == "" {
+		if t.StaticName == "" {
 			return errors.New("Required StaticName")
 		}
-		if c.Subject == "" {
+		if t.Subject == "" {
 			return errors.New("Required Subject")
 		}
-		if c.Body == "" {
+		if t.Body == "" {
 			return errors.New("Required Body")
+		}
+		if int64(strings.Count(t.Body, "$")) != t.ParamsCount {
+			return errors.New("Parameters required don't match")
 		}
 		return nil
 	default:
 		return errors.New("Invalid validation operation")
 	}
+}
+
+// PrepareTemplateOutput prepare the template to output
+func (t *Template) PrepareTemplateOutput(temp Template) {
+	t.ID = temp.ID
+	t.Name = temp.Name
+	t.StaticName = temp.StaticName
+	t.Subject = temp.Subject
+	t.Body = temp.Body
+	t.ParamsCount = temp.ParamsCount
 }
