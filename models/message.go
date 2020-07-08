@@ -11,21 +11,23 @@ import (
 
 // Message struct
 type Message struct {
-	ID        int64     `json:"id,omitempty"`
-	ChannelID int64     `json:"channelId,omitempty"`
-	Channel   string    `json:"channel,omitempty"`
-	Recipient string    `json:"recipient,omitempty"`
-	Subject   string    `json:"subject,omitempty"`
-	Content   string    `json:"content,omitempty"`
-	CreatedBy int64     `json:"createdBy,omitempty"`
-	CreatedOn time.Time `json:"-"`
-	ExpireOn  time.Time `json:"-"`
-	Operation string    `json:"operation,omitempty"`
-	StatusID  int64     `json:"statusId,omitempty"`
-	Status    string    `json:"status,omitempty"`
-	Attempts  int64     `json:"attempts,omitempty"`
-	Priority  int64     `json:"priority,omitempty"`
-	Reference string    `json:"reference,omitempty"`
+	ID         int64     `json:"id,omitempty"`
+	TemplateID int64     `json:"templateId,omitempty"`
+	ChannelID  int64     `json:"channelId,omitempty"`
+	Channel    string    `json:"channel,omitempty"`
+	Recipient  string    `json:"recipient,omitempty"`
+	Subject    string    `json:"subject,omitempty"`
+	Content    string    `json:"content,omitempty"`
+	CreatedBy  int64     `json:"createdBy,omitempty"`
+	CreatedOn  time.Time `json:"-"`
+	ExpireOn   time.Time `json:"-"`
+	Operation  string    `json:"operation,omitempty"`
+	StatusID   int64     `json:"statusId,omitempty"`
+	Status     string    `json:"status,omitempty"`
+	Attempts   int64     `json:"attempts,omitempty"`
+	Priority   int64     `json:"priority,omitempty"`
+	Reference  string    `json:"reference,omitempty"`
+	Params     []string  `json:"params,omitempty"`
 }
 
 // PrepareInput initiliazes the Message request object
@@ -65,6 +67,21 @@ func (m *Message) Validate(action string) error {
 		}
 		if m.Content == "" {
 			return errors.New("Required Content")
+		}
+		if !validate.Email(m.Recipient) {
+			return errors.New("Invalid email address")
+		}
+		return nil
+
+	case "new-template":
+		if m.TemplateID == 0 {
+			return errors.New("Required Template")
+		}
+		if m.ChannelID == 0 {
+			return errors.New("Required Channel")
+		}
+		if m.Recipient == "" {
+			return errors.New("Required Recipient")
 		}
 		if !validate.Email(m.Recipient) {
 			return errors.New("Invalid email address")

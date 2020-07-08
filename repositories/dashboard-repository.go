@@ -19,7 +19,7 @@ func (repo *DashboardRepository) Init(db *database.DB) {
 func (repo *DashboardRepository) GetDashboard(year int64, month int64) (models.Dashboard, error) {
 	dashboard := models.Dashboard{}
 	query := `
-	select id, staging, queue, complete, failed
+	select id, request, staging, queue, complete, failed
 	from dashboard 
 	WHERE year = $1 AND month = $2;
 	`

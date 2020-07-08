@@ -211,6 +211,7 @@ func (repo *MessageRepository) updateStagingDashboard(count int64) error {
 	statement := `
 	UPDATE dashboard
 	SET 
+		request = request + $1,
 		staging = staging + $1
 	WHERE year = (SELECT EXTRACT(YEAR FROM CURRENT_TIMESTAMP))
 		AND month = (SELECT EXTRACT(MONTH FROM CURRENT_TIMESTAMP))

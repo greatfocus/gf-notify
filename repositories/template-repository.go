@@ -83,6 +83,23 @@ func (repo *TemplateRepository) GetTemplates(page int64) ([]models.Template, err
 	return templateMapper(rows)
 }
 
+// GetTemplate method returns template from the database
+func (repo *TemplateRepository) GetTemplate(id int64) (models.Template, error) {
+	template := models.Template{}
+	query := `
+	select id, name, staticName, subject, body, paramsCount, createdOn, updatedOn, enabled 
+	from template 
+	where id=$1 and deleted = false
+	`
+	row := repo.db.Conn.QueryRow(query, id)
+	err := row.Scan(&template.ID, &template.Name, &template.StaticName, &template.Subject, &template.Body, &template.ParamsCount, &template.CreatedOn, &template.UpdatedOn, &template.Enabled)
+	if err != nil {
+		return template, err
+	}
+
+	return template, nil
+}
+
 // DeleteTemplate makes changes to the template delete status
 func (repo *TemplateRepository) DeleteTemplate(id int64, userID int64) error {
 	query := `
