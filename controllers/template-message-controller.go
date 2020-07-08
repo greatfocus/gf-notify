@@ -71,7 +71,14 @@ func (t *TemplateMessageController) add(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	createdMessage, err := createTemplateMessage(t, message)
+	newMessage, err := createTemplateMessage(t.messageRepository, t.templateRepository, message)
+	if err != nil {
+		derr := errors.New("unexpected error occurred")
+		log.Printf("Error: %v\n", err)
+		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		return
+	}
+	createdMessage, err := t.messageRepository.Add("staging", newMessage)
 	if err != nil {
 		derr := errors.New("unexpected error occurred")
 		log.Printf("Error: %v\n", err)
@@ -84,8 +91,8 @@ func (t *TemplateMessageController) add(w http.ResponseWriter, r *http.Request) 
 	responses.Success(w, http.StatusCreated, result)
 }
 
-func createTemplateMessage(t *TemplateMessageController, message models.Message) (models.Message, error) {
-	template, err := getTemplate(message.TemplateID, t)
+func createTemplateMessage(messageRepo *repositories.MessageRepository, templateRepo *repositories.TemplateRepository, message models.Message) (models.Message, error) {
+	template, err := getTemplate(message.TemplateID, templateRepo)
 	if err != nil {
 		return message, err
 	}
@@ -101,11 +108,11 @@ func createTemplateMessage(t *TemplateMessageController, message models.Message)
 
 	message.Content = createContent(template.Body, message.Params)
 	message.Subject = template.Subject
-	return t.messageRepository.Add("staging", message)
+	return message, nil
 }
 
-func getTemplate(id int64, t *TemplateMessageController) (models.Template, error) {
-	template, err := t.templateRepository.GetTemplate(id)
+func getTemplate(id int64, repo *repositories.TemplateRepository) (models.Template, error) {
+	template, err := repo.GetTemplate(id)
 	if err != nil {
 		return template, err
 	}

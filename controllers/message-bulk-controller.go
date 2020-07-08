@@ -64,7 +64,7 @@ func (m *MessageBulkController) addMessage(w http.ResponseWriter, r *http.Reques
 
 	Validate(w, messages)
 	PrepareInput(w, r, messages)
-	BulkInsert(w, r, m, messages)
+	BulkInsert(w, r, m.messageRepository, messages)
 }
 
 // Validate bulk messages
@@ -92,9 +92,9 @@ func PrepareInput(w http.ResponseWriter, r *http.Request, messages []models.Mess
 }
 
 // BulkInsert bulk messages
-func BulkInsert(w http.ResponseWriter, r *http.Request, m *MessageBulkController, messages []models.Message) {
+func BulkInsert(w http.ResponseWriter, r *http.Request, repo *repositories.MessageRepository, messages []models.Message) {
 	for i := 0; i < len(messages); i++ {
-		result, err := m.messageRepository.Add("staging", messages[i])
+		result, err := repo.Add("staging", messages[i])
 		if err != nil {
 			messages[i].Operation = "failed"
 		}
