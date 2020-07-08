@@ -37,6 +37,16 @@ func (s *GFUser) PrepareUser() {
 	s.UpdatedBy = 1
 }
 
+// PrepareUserEdit initiliazes the user request object
+func (s *GFUser) PrepareUserEdit() {
+	s.UpdatedOn = time.Now()
+	key := strconv.Itoa(int(utils.Srand(10)))
+	s.Key = utils.HashAndSalt([]byte(key))
+
+	// TODO:consider making API call to users
+	s.UpdatedBy = 1
+}
+
 // ValidationPermission check permissions
 func (s *GFUser) ValidationPermission(r *http.Request) error {
 	userID, err := jwt.ExtractTokenID(r)
@@ -53,7 +63,7 @@ func (s *GFUser) ValidationPermission(r *http.Request) error {
 // ValidateUser check if request is valid
 func (s *GFUser) ValidateUser(action string) error {
 	switch strings.ToLower(action) {
-	case "update":
+	case "edit":
 		if s.ID == 0 {
 			return errors.New("Required ID")
 		}

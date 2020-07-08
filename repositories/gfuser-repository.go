@@ -43,11 +43,10 @@ func (repo *GFUserRepository) UpdateUser(user models.GFUser) error {
 	set 
 		key=$2,
 		updatedBy=$3,
-		enabled=$4,
-		deleted=$5
-    where id=$1
+		enabled=$4		
+    where id=$1 and deleted=false
   	`
-	res, err := repo.db.Conn.Exec(query, user.ID, user.Key, user.UpdatedBy, user.Enabled, user.Deleted)
+	res, err := repo.db.Conn.Exec(query, user.ID, user.Key, user.UpdatedBy, user.Enabled)
 	if err != nil {
 		return err
 	}
@@ -68,6 +67,7 @@ func (repo *GFUserRepository) GetUsers(page int64) ([]models.GFUser, error) {
 	query := `
 	select id, relatedId, email, key, createdBy, createdOn, updatedBy, updatedOn, enabled, deleted 
 	from gfuser 
+	where deleted = false
 	order by createdOn asc limit 500 OFFSET $1-1
 	`
 	rows, err := repo.db.Conn.Query(query, page)
@@ -77,6 +77,34 @@ func (repo *GFUserRepository) GetUsers(page int64) ([]models.GFUser, error) {
 	defer rows.Close()
 
 	return userMapper(rows)
+}
+
+// DeleteUser makes changes to the user delete status
+func (repo *GFUserRepository) DeleteUser(id int64, userID int64) error {
+	query := `
+    update gfuser
+	set 
+		email=CONCAT(email, '-', 'DELETED'),
+		updatedBy=$2,
+		updatedOn=CURRENT_TIMESTAMP,
+		enabled=false,
+		deleted=true
+    where id=$1
+  	`
+	res, err := repo.db.Conn.Exec(query, id, userID)
+	if err != nil {
+		return err
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count != 1 {
+		return fmt.Errorf("more than 1 record got updated user for %d", id)
+	}
+
+	return nil
 }
 
 // prepare users row

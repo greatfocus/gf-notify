@@ -202,7 +202,29 @@ func (repo *MessageRepository) Add(table string, message models.Message) (models
 	}
 
 	message.ID = id
+	repo.updateStagingDashboard(1)
 	return message, nil
+}
+
+// updateStagingDashboard method make changes to dashboard
+func (repo *MessageRepository) updateStagingDashboard(count int64) error {
+	statement := `
+	UPDATE dashboard
+	SET 
+		staging = staging + $1
+	WHERE year = (SELECT EXTRACT(YEAR FROM CURRENT_TIMESTAMP))
+		AND month = (SELECT EXTRACT(MONTH FROM CURRENT_TIMESTAMP))
+	`
+
+	var args []interface{}
+	args = append(args, count)
+	queryParams := newQueryParams("", statement, args, repo)
+	_, err := update(queryParams, 1)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Update method make changes to message
@@ -269,8 +291,10 @@ func (repo *MessageRepository) MoveStagedToQueue() (bool, error) {
 			SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, 2, 0, priority FROM moved_rows
 		)		
 		UPDATE dashboard
-		SET queue = queue + (SELECT COUNT(ID) FROM moved_rows), staging = staging + (SELECT COUNT(ID) FROM moved_rows)
-		WHERE year = yr AND mnth = mnth;
+		SET 
+			queue = queue + (SELECT COUNT(ID) FROM moved_rows), 
+			staging = staging - (SELECT COUNT(ID) FROM moved_rows)
+		WHERE year = yr AND month = mnth;
 	END $$;
 	`
 
@@ -327,7 +351,7 @@ func (repo *MessageRepository) MoveOutFailedQueue() (bool, error) {
 		SET 
 			failed = failed + (SELECT COUNT(ID) FROM moved_rows),
 			queue = queue - (SELECT COUNT(ID) FROM moved_rows)
-		WHERE year = yr AND mnth = mnth;
+		WHERE year = yr AND month = mnth;
 	END $$;
 	`
 
@@ -367,7 +391,7 @@ func (repo *MessageRepository) MoveOutCompleteQueue() (bool, error) {
 		SET 
 			complete = complete + (SELECT COUNT(ID) FROM moved_rows),
 			queue = queue - (SELECT COUNT(ID) FROM moved_rows)
-		WHERE year = yr AND mnth = mnth;
+		WHERE year = yr AND month = mnth;
 	END $$;
 	`
 

@@ -32,6 +32,10 @@ func (c *GFUserController) Handler(w http.ResponseWriter, r *http.Request) {
 		c.get(w, r)
 	case http.MethodPost:
 		c.add(w, r)
+	case http.MethodPut:
+		c.update(w, r)
+	case http.MethodDelete:
+		c.delete(w, r)
 	default:
 		err := errors.New("Invalid Request")
 		responses.Error(w, http.StatusUnprocessableEntity, err)
@@ -96,4 +100,63 @@ func (c *GFUserController) add(w http.ResponseWriter, r *http.Request) {
 	result := models.GFUser{}
 	result.PrepareUserOutput(createdUser)
 	responses.Success(w, http.StatusCreated, result)
+}
+
+// update method adds new user
+func (c *GFUserController) update(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		derr := errors.New("invalid payload request")
+		log.Printf("Error: %v\n", err)
+		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		return
+	}
+	user := models.GFUser{}
+	err = json.Unmarshal(body, &user)
+	if err != nil {
+		derr := errors.New("invalid payload request")
+		log.Printf("Error: %v\n", err)
+		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		return
+	}
+
+	user.PrepareUserEdit()
+	err = user.ValidateUser("edit")
+	if err != nil {
+		log.Printf("Error: %v\n", err)
+		responses.Error(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	err = c.gfuserRepository.UpdateUser(user)
+	if err != nil {
+		derr := errors.New("unexpected error occurred")
+		log.Printf("Error: %v\n", err)
+		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		return
+	}
+
+	result := models.GFUser{}
+	result.PrepareUserOutput(user)
+	responses.Success(w, http.StatusCreated, result)
+}
+
+// requestMessage method delete user
+func (c *GFUserController) delete(w http.ResponseWriter, r *http.Request) {
+	idStr := r.FormValue("id")
+
+	if len(idStr) != 0 {
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		err = c.gfuserRepository.DeleteUser(id, 1)
+		if err != nil {
+			responses.Error(w, http.StatusBadRequest, err)
+			return
+		}
+		responses.Success(w, http.StatusOK, id)
+		return
+	}
+
+	derr := errors.New("Invalid parameter")
+	responses.Error(w, http.StatusBadRequest, derr)
+	return
 }
