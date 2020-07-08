@@ -165,6 +165,27 @@ func prepareInStatement(arg []interface{}) string {
 	return statement
 }
 
+// ReportMessages method returns messages from the database
+func (repo *MessageRepository) ReportMessages(table string, channel int64, year int64, month int64, page int64) ([]models.Message, error) {
+	// prepare the statement
+	statement := `
+	select m.id, m.channelId, c.name as channel, m.recipient, m.subject, m.content, m.createdBy, m.createdOn, m.expireOn, m.statusId, s.name as status, 0 as attempts, m.priority 
+	from $table m
+	inner join channel c on c.id = m.channelId
+	inner join status s on s.id = m.statusId
+	where m.channelId = $1
+	order BY m.createdOn ASC limit 500 OFFSET $2-1
+	`
+	// prepare the args
+	var args []interface{}
+	args = append(args, channel, page)
+	tt := strconv.Itoa(int(year)) + strconv.Itoa(int(month))
+	newTable := fmt.Sprintf("%s%s", table, tt)
+	qry := strings.Replace(statement, "$table", string(newTable), -1)
+	queryParams := newQueryParams(table, qry, args, repo)
+	return query(queryParams)
+}
+
 // GetMessages method returns messages from the database
 func (repo *MessageRepository) GetMessages(table string, messageParam MessageParam) ([]models.Message, error) {
 	// prepare the statement
