@@ -46,8 +46,9 @@ func (repo *TemplateRepository) UpdateTemplate(template models.Template) error {
 		body=$4,
 		paramsCount=$5,
 		updatedBy=$6,
+		updatedOn=CURRENT_TIMESTAMP,
 		enabled=$7
-    where id=$1
+    where id=$1 and deleted=false
   	`
 	res, err := repo.db.Conn.Exec(query, template.ID, template.Name, template.Subject, template.Body, template.ParamsCount, template.UpdatedBy, template.Enabled)
 	if err != nil {
@@ -70,6 +71,7 @@ func (repo *TemplateRepository) GetTemplates(page int64) ([]models.Template, err
 	query := `
 	select id, name, staticName, subject, body, paramsCount, createdOn, updatedOn, enabled 
 	from template 
+	where deleted = false
 	order by createdOn asc limit 500 OFFSET $1-1
 	`
 	rows, err := repo.db.Conn.Query(query, page)
@@ -79,6 +81,34 @@ func (repo *TemplateRepository) GetTemplates(page int64) ([]models.Template, err
 	defer rows.Close()
 
 	return templateMapper(rows)
+}
+
+// DeleteTemplate makes changes to the template delete status
+func (repo *TemplateRepository) DeleteTemplate(id int64, userID int64) error {
+	query := `
+    update template
+	set 
+		staticName=CONCAT(staticName, '-', 'DELETED'),
+		updatedBy=$2,
+		updatedOn=CURRENT_TIMESTAMP,
+		enabled=false,
+		deleted=true
+    where id=$1
+  	`
+	res, err := repo.db.Conn.Exec(query, id, userID)
+	if err != nil {
+		return err
+	}
+
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count != 1 {
+		return fmt.Errorf("more than 1 record got updated template for %d", id)
+	}
+
+	return nil
 }
 
 // prepare template row
