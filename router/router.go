@@ -52,13 +52,13 @@ func usersRoute(mux *http.ServeMux, db *database.DB) {
 	reportController.Init(db)
 
 	// Initialize routes
-	mux.HandleFunc("/channel", middlewares.SetMiddlewareJSON(channelController.Handler))
-	mux.HandleFunc("/message", middlewares.SetMiddlewareJSON(messageController.Handler))
-	mux.HandleFunc("/message/bulk", middlewares.SetMiddlewareJSON(messageBulkController.Handler))
-	mux.HandleFunc("/dashboard", middlewares.SetMiddlewareJSON(dashboardController.Handler))
-	mux.HandleFunc("/gf-user", middlewares.SetMiddlewareJSON(gfuserController.Handler))
-	mux.HandleFunc("/template", middlewares.SetMiddlewareJSON(templateController.Handler))
-	mux.HandleFunc("/template-message", middlewares.SetMiddlewareJSON(templateMessageController.Handler))
-	mux.HandleFunc("/template-message/bulk", middlewares.SetMiddlewareJSON(templateMessageBulkController.Handler))
-	mux.HandleFunc("/report", middlewares.SetMiddlewareJSON(reportController.Handler))
+	mux.HandleFunc("/notify/channel", middlewares.SetMiddlewareJSON(channelController.Handler))
+	mux.HandleFunc("/notify/message", middlewares.SetMiddlewareJSON(messageController.Handler))
+	mux.HandleFunc("/notify/message/bulk", middlewares.SetMiddlewareJSON(messageBulkController.Handler))
+	mux.HandleFunc("/notify/dashboard", middlewares.SetMiddlewareJSON(dashboardController.Handler))
+	mux.HandleFunc("/notify/gf-user", middlewares.SetMiddlewareJSON(gfuserController.Handler))
+	mux.HandleFunc("/notify/template", middlewares.SetMiddlewareJSON(templateController.Handler))
+	mux.HandleFunc("/notify/template-message", middlewares.SetMiddlewareJSON(templateMessageController.Handler))
+	mux.HandleFunc("/notify/template-message/bulk", middlewares.SetMiddlewareJSON(templateMessageBulkController.Handler))
+	mux.HandleFunc("/notify/report", middlewares.SetMiddlewareJSON(reportController.Handler))
 }
