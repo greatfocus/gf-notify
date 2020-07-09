@@ -1,0 +1,29 @@
+[Unit]
+Description= Instance for sending emails and sms
+ConditionPathExists=/home/muthurimi/go/src/github.com/greatfocus/gf-notify/gf-notify
+After=network.target
+
+[Service]
+Type=simple
+User=root
+Group=www-data
+LimitNOFILE=1024
+
+Restart=on-failure
+RestartSec=10
+startLimitIntervalSec=60
+
+WorkingDirectory=/home/muthurimi/go/src/github.com/greatfocus/gf-notify/
+ExecStart=/home/muthurimi/go/src/github.com/greatfocus/gf-notify/gf-notify
+
+# make sure log directory exists and owned by syslog
+PermissionsStartOnly=true
+ExecStartPre=/bin/mkdir -p /var/log/gf-notify
+ExecStartPre=/bin/chown syslog:adm /var/log/gf-notify
+ExecStartPre=/bin/chmod 755 /var/log/gf-notify
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=gf-notify
+
+[Install]
+WantedBy=multi-user.target
