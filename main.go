@@ -11,11 +11,11 @@ import (
 // Entry point to the solution
 func main() {
 	// Load configurations
-	service := frame.Create("dev.json")
+	server := frame.Create("dev.json")
 
 	// background task
 	tasks := task.Tasks{}
-	tasks.Init(service.DB, service.Config)
+	tasks.Init(server.DB, server.Config)
 	cron.Every(1).Sunday().At("8:00").Do(tasks.RunDatabaseScripts)
 	// cron.Every(1).Day().At("3:00").Do(tasks.RunDatabaseScripts) // consider making API calls to users to validate gf users e.g if they have been disabled
 	cron.Every(20).Second().Do(tasks.MoveStagedToQueue)
@@ -26,5 +26,5 @@ func main() {
 	cron.Start()
 
 	// start API service
-	service.Start(router.Router(service.DB))
+	server.Start(router.Router(server.DB))
 }

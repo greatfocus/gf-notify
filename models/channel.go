@@ -26,7 +26,7 @@ type Channel struct {
 func (c *Channel) PrepareChannel(r *http.Request) error {
 	c.UpdatedOn = time.Now()
 
-	userID, err := jwt.ExtractTokenID(r)
+	userID, _, err := jwt.ExtractTokenID(r)
 	if err != nil {
 		return errors.New("Invalid token")
 	}

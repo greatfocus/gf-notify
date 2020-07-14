@@ -49,7 +49,7 @@ func (s *GFUser) PrepareUserEdit() {
 
 // ValidationPermission check permissions
 func (s *GFUser) ValidationPermission(r *http.Request) error {
-	userID, err := jwt.ExtractTokenID(r)
+	userID, _, err := jwt.ExtractTokenID(r)
 	if err != nil {
 		return errors.New("Invalid token")
 	}
