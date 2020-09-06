@@ -16,7 +16,7 @@ HERE IS THE LOGIN INVOLVED
 3. Send email for the messages in bulks of number of seconds
 4. Update the messages status incase of any failure or success
 **/
-func SendQueuedEmails(repo *repositories.MessageRepository, request *EmailRequest) {
+func SendQueuedEmails(repo *repositories.MessageRepository, request *EmailService) {
 	params := repositories.MessageParam{
 		ChannelID: 2,
 		StatusID:  2,
@@ -39,7 +39,7 @@ func SendQueuedEmails(repo *repositories.MessageRepository, request *EmailReques
 }
 
 // prepareQueueMessages creates post model
-func prepareQueueMessages(repo *repositories.MessageRepository, msgs []models.Message, request *EmailRequest) {
+func prepareQueueMessages(repo *repositories.MessageRepository, msgs []models.Message, request *EmailService) {
 	var args []interface{}
 	recipient := make([]string, len(msgs))
 	subjects := make([]string, len(msgs))
@@ -60,7 +60,7 @@ func prepareQueueMessages(repo *repositories.MessageRepository, msgs []models.Me
 }
 
 // SendBulk initiates sending of the messages
-func sendBulkEmails(repo *repositories.MessageRepository, msgs []models.Message, email *EmailRequest) {
+func sendBulkEmails(repo *repositories.MessageRepository, msgs []models.Message, email *EmailService) {
 	log.Println("Scheduler_SendQueuedEmails Sending bulk Email messages")
 	var wg sync.WaitGroup
 
@@ -75,7 +75,7 @@ func sendBulkEmails(repo *repositories.MessageRepository, msgs []models.Message,
 }
 
 // updateMessage change message status
-func updateQueueEmail(repo *repositories.MessageRepository, msgs []models.Message, email *EmailRequest) {
+func updateQueueEmail(repo *repositories.MessageRepository, msgs []models.Message, email *EmailService) {
 	for i := 0; i < len(email.Recipients); i++ {
 		// check status of email sent
 		trial := msgs[i].Attempts + 1

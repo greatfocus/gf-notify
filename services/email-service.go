@@ -6,8 +6,8 @@ import (
 	"sync"
 )
 
-// EmailRequest struct
-type EmailRequest struct {
+// EmailService struct
+type EmailService struct {
 	Host       string
 	Port       string
 	User       string
@@ -20,13 +20,13 @@ type EmailRequest struct {
 }
 
 // Auth get the authentication for each batch to avoid having too many logins
-func Auth(email *EmailRequest) smtp.Auth {
+func Auth(email *EmailService) smtp.Auth {
 	auth := smtp.PlainAuth("", email.User, email.Password, email.Host)
 	return auth
 }
 
 // SendMail initiates sending of the email
-func SendMail(i int, email *EmailRequest, auth smtp.Auth, wg *sync.WaitGroup) {
+func SendMail(i int, email *EmailService, auth smtp.Auth, wg *sync.WaitGroup) {
 	sent := true
 	// hostname is used by PlainAuth to validate the TLS certificate.
 	to := []string{email.Recipients[i]}

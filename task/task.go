@@ -27,7 +27,7 @@ func (t *Tasks) Init(db *database.DB, config *config.Config) {
 // SendQueuedEmails intiates the job to send queued messages
 func (t *Tasks) SendQueuedEmails() {
 	log.Println("Scheduler_SendQueuedEmails started")
-	request := services.EmailRequest{
+	request := services.EmailService{
 		Host:     t.config.Email.Host,
 		Port:     t.config.Email.Port,
 		From:     t.config.Email.From,
