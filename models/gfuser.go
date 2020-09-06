@@ -21,7 +21,7 @@ type GFUser struct {
 	CreatedOn time.Time `json:"-"`
 	UpdatedBy int64     `json:"-"`
 	UpdatedOn time.Time `json:"-"`
-	Enabled   bool      `json:"-"`
+	Enabled   bool      `json:"enabled,omitempty"`
 	Deleted   bool      `json:"-"`
 }
 

@@ -24,7 +24,7 @@ func (repo *DashboardRepository) GetDashboard(year int64, month int64) (models.D
 	WHERE year = $1 AND month = $2;
 	`
 	row := repo.db.Conn.QueryRow(query, year, month)
-	err := row.Scan(&dashboard.ID, &dashboard.Staging, &dashboard.Queue, &dashboard.Complete, &dashboard.Failed)
+	err := row.Scan(&dashboard.ID, &dashboard.Request, &dashboard.Staging, &dashboard.Queue, &dashboard.Complete, &dashboard.Failed)
 	if err != nil {
 		return models.Dashboard{}, err
 	}
