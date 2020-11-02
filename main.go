@@ -25,5 +25,5 @@ func main() {
 	server.Cron.Start()
 
 	// start API service
-	server.Start(router.Router(server.DB, server.Config))
+	server.Start(router.Router(&server))
 }

@@ -2,12 +2,10 @@ package models
 
 import (
 	"errors"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/greatfocus/gf-frame/jwt"
 	"github.com/greatfocus/gf-frame/utils"
 )
 
@@ -30,7 +28,10 @@ func (s *GFUser) PrepareUser() {
 	s.UpdatedOn = time.Now()
 	s.CreatedOn = time.Now()
 	key := strconv.Itoa(int(utils.Srand(10)))
-	s.Key = utils.HashAndSalt([]byte(key))
+	result, err := utils.HashAndSalt([]byte(key))
+	if err == nil {
+		s.Key = result
+	}
 
 	// TODO:consider making API call to users
 	s.CreatedBy = 1
@@ -41,23 +42,13 @@ func (s *GFUser) PrepareUser() {
 func (s *GFUser) PrepareUserEdit() {
 	s.UpdatedOn = time.Now()
 	key := strconv.Itoa(int(utils.Srand(10)))
-	s.Key = utils.HashAndSalt([]byte(key))
-
-	// TODO:consider making API call to users
-	s.UpdatedBy = 1
-}
-
-// ValidationPermission check permissions
-func (s *GFUser) ValidationPermission(r *http.Request) error {
-	userID, _, err := jwt.ExtractTokenID(r)
-	if err != nil {
-		return errors.New("Invalid token")
+	result, err := utils.HashAndSalt([]byte(key))
+	if err == nil {
+		s.Key = result
 	}
 
 	// TODO:consider making API call to users
-	s.CreatedBy = userID
-	s.UpdatedBy = userID
-	return nil
+	s.UpdatedBy = 1
 }
 
 // ValidateUser check if request is valid
