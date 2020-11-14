@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	frame "github.com/greatfocus/gf-frame"
 	"github.com/greatfocus/gf-notify/router"
 	"github.com/greatfocus/gf-notify/task"
@@ -9,8 +11,13 @@ import (
 
 // Entry point to the solution
 func main() {
+	// Get arguments
+	if os.Args[1] == "" {
+		panic("Pass the environment")
+	}
+
 	// Load configurations
-	server := frame.Create("dev.json")
+	server := frame.Create(os.Args[1] + ".json")
 
 	// background task
 	tasks := task.Tasks{}
