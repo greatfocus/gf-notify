@@ -1,0 +1,154 @@
+### Add Message
+POST http://localhost:5002/notify/message
+clientid: ee2e931f67574bbe916650ef415a5e1a
+secret: MANPcQzdWJASQKHAphxC
+Content-Type: application/json
+
+{
+	"channelId" : 2,
+	"recipient": "mucunga90@gmail.com",
+	"subject": "Test",
+	"content": "Received message"
+}
+
+
+### Add Bulk Message
+POST http://localhost:5002/notify/message/bulk
+Content-Type: application/json
+clientid: ee2e931f67574bbe916650ef415a5e1a
+secret: MANPcQzdWJASQKHAphxC
+
+[
+	{
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"subject": "Test",
+		"content": "Received message"
+	},
+	{
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"subject": "Test",
+		"content": "Received message"
+	},
+	{
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"subject": "Test",
+		"content": "Received message"
+	},
+	{
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"subject": "Test",
+		"content": "Received message"
+	},
+	{
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"subject": "Test",
+		"content": "Received message"
+	},
+	{
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"subject": "Test",
+		"content": "Received message"
+	},
+	{
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"subject": "Test",
+		"content": "Received message"
+	},
+	{
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"subject": "Test",
+		"content": "Received message"
+	},
+	{
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"subject": "Test",
+		"content": "Received message"
+	},
+	{
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"subject": "Test",
+		"content": "Received message"
+	},
+	{
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"subject": "Test",
+		"content": "Received message"
+	},
+	{
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"subject": "Test",
+		"content": "Received message"
+	},
+	{
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"subject": "Test",
+		"content": "Received message"
+	},
+	{
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"subject": "Test",
+		"content": "Received message"
+	},
+	{
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"subject": "Test",
+		"content": "Received message"
+	}
+]
+
+
+### Add Template Message
+POST http://localhost:5002/notify/template-message
+Content-Type: application/json
+clientid: ee2e931f67574bbe916650ef415a5e1a
+secret: MANPcQzdWJASQKHAphxC
+
+{
+	"templateId": 1,
+	"channelId" : 2,
+	"recipient": "mucunga90@gmail.com",
+	"params": [
+		"41298"
+	]
+}
+
+
+### Add Bulk Template Message
+POST http://localhost:5002/notify/template-message/bulk
+clientid: ee2e931f67574bbe916650ef415a5e1a
+secret: MANPcQzdWJASQKHAphxC
+Content-Type: application/json
+
+[
+	{
+		"templateId": 1,
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"params": [
+			"peter"
+		]
+	},
+	{
+		"templateId": 1,
+		"channelId" : 2,
+		"recipient": "mucunga90@gmail.com",
+		"params": [
+			"peter"
+		]
+	}
+]

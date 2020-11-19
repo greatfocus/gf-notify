@@ -1,0 +1,11 @@
+### dashboard
+GET http://localhost:5002/notify/dashboard?year=2020&month=9
+Content-Type: application/json
+clientid: ee2e931f67574bbe916650ef415a5e1a
+secret: MANPcQzdWJASQKHAphxC
+
+### report
+GET http://localhost:5002/notify/report?table=complete&channel=2&year=2020&month=11&page=1
+Content-Type: application/json
+clientid: ee2e931f67574bbe916650ef415a5e1a
+secret: MANPcQzdWJASQKHAphxC

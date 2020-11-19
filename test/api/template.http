@@ -1,0 +1,41 @@
+### Get Template
+GET http://localhost:5002/notify/template?page=1
+Content-Type: application/json
+clientid: ee2e931f67574bbe916650ef415a5e1a
+secret: MANPcQzdWJASQKHAphxC
+
+
+### Add Template
+POST http://localhost:5002/notify/template
+Content-Type: application/json
+clientid: ee2e931f67574bbe916650ef415a5e1a
+secret: MANPcQzdWJASQKHAphxC
+
+{
+	"name" : "Post Published",
+	"staticName": "post_published",
+	"subject": "Post Published",
+	"body": "Hi $1!, \nWe hereby notify you request for $2 has been published. Kindly share with is your experience with us, we would be glad to receive your feedback. \n\nThe Respect Team",
+	"paramsCount": 2
+}
+
+### Edit Template
+PUT http://localhost:5002/notify/template
+Content-Type: application/json
+clientid: ee2e931f67574bbe916650ef415a5e1a
+secret: MANPcQzdWJASQKHAphxC
+
+{
+    "id": 1,
+    "name": "OTP",
+    "staticName": "otp",
+    "subject": "Please verify your registration",
+    "body": "Hello, \\n\\n Thank you for registering and partnering with us. To complete the registration, enter the verification code.\\n\\n \u003cb\u003eVerification code: $1\u003c/b\u003e \\n\\n Thanks,\\n The Respect Team",
+    "paramsCount": 1
+}
+
+### Edit Template
+DELETE  http://localhost:5002/notify/template?id=4
+Content-Type: application/json
+clientid: ee2e931f67574bbe916650ef415a5e1a
+secret: MANPcQzdWJASQKHAphxC

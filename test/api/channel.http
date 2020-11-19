@@ -1,0 +1,5 @@
+### create user
+GET http://localhost:5002/notify/channel
+Content-Type: application/json
+clientid: ee2e931f67574bbe916650ef415a5e1a
+secret: MANPcQzdWJASQKHAphxC
