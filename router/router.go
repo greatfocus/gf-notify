@@ -37,9 +37,6 @@ func usersRoute(mux *http.ServeMux, s *server.Server) {
 	dashboardController := controllers.DashboardController{}
 	dashboardController.Init(s.DB)
 
-	gfuserController := controllers.GFUserController{}
-	gfuserController.Init(s.DB)
-
 	templateController := controllers.TemplateController{}
 	templateController.Init(s.DB)
 
@@ -57,7 +54,6 @@ func usersRoute(mux *http.ServeMux, s *server.Server) {
 	mux.HandleFunc("/notify/message", middlewares.SetMiddlewareClient(messageController.Handler, s))
 	mux.HandleFunc("/notify/message/bulk", middlewares.SetMiddlewareClient(messageBulkController.Handler, s))
 	mux.HandleFunc("/notify/dashboard", middlewares.SetMiddlewareClient(dashboardController.Handler, s))
-	mux.HandleFunc("/notify/gf-user", middlewares.SetMiddlewareClient(gfuserController.Handler, s))
 	mux.HandleFunc("/notify/template", middlewares.SetMiddlewareClient(templateController.Handler, s))
 	mux.HandleFunc("/notify/template-message", middlewares.SetMiddlewareClient(templateMessageController.Handler, s))
 	mux.HandleFunc("/notify/template-message/bulk", middlewares.SetMiddlewareClient(templateMessageBulkController.Handler, s))
