@@ -3,6 +3,6 @@ module github.com/greatfocus/gf-notify
 go 1.14
 
 require (
-	github.com/greatfocus/gf-frame v1.0.0-beta37
+	github.com/greatfocus/gf-frame v1.0.0-beta41
 	github.com/lib/pq v1.7.1
 )
