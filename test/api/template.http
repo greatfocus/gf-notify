@@ -1,29 +1,32 @@
 ### Get Template
 GET http://localhost:5002/notify/template?page=1
 Content-Type: application/json
-clientid: ee2e931f67574bbe916650ef415a5e1a
-secret: MANPcQzdWJASQKHAphxC
+email: muthurimixphone@gmail.com
+clientid: 98590c398a254d2898838e1b17381575
+secret: ADRtjWLkttBbMQLpMADF
 
 
 ### Add Template
 POST http://localhost:5002/notify/template
 Content-Type: application/json
-clientid: ee2e931f67574bbe916650ef415a5e1a
-secret: MANPcQzdWJASQKHAphxC
+email: muthurimixphone@gmail.com
+clientid: 98590c398a254d2898838e1b17381575
+secret: ADRtjWLkttBbMQLpMADF
 
 {
-	"name" : "Post Published",
-	"staticName": "post_published",
-	"subject": "Post Published",
-	"body": "Hi $1!, \nWe hereby notify you request for $2 has been published. Kindly share with is your experience with us, we would be glad to receive your feedback. \n\nThe Respect Team",
+	"name" : "Client Credentials",
+	"staticName": "client_credentials",
+	"subject": "Client Credentials",
+	"body": "Hi, \nWe hereby notify you request to access API service has been granted. See below you credentials clientId:  $1, secret: $2 for login. Kindly share with is your experience with us, we would be glad to receive your feedback. \n\nThe Respect Team",
 	"paramsCount": 2
 }
 
 ### Edit Template
 PUT http://localhost:5002/notify/template
 Content-Type: application/json
-clientid: ee2e931f67574bbe916650ef415a5e1a
-secret: MANPcQzdWJASQKHAphxC
+email: muthurimixphone@gmail.com
+clientid: 98590c398a254d2898838e1b17381575
+secret: ADRtjWLkttBbMQLpMADF
 
 {
     "id": 1,
@@ -37,5 +40,6 @@ secret: MANPcQzdWJASQKHAphxC
 ### Edit Template
 DELETE  http://localhost:5002/notify/template?id=4
 Content-Type: application/json
-clientid: ee2e931f67574bbe916650ef415a5e1a
-secret: MANPcQzdWJASQKHAphxC
+email: muthurimixphone@gmail.com
+clientid: 98590c398a254d2898838e1b17381575
+secret: ADRtjWLkttBbMQLpMADF

@@ -1,7 +1,8 @@
 ### Add Message
 POST http://localhost:5002/notify/message
-clientid: ee2e931f67574bbe916650ef415a5e1a
-secret: MANPcQzdWJASQKHAphxC
+email: muthurimixphone@gmail.com
+clientid: 98590c398a254d2898838e1b17381575
+secret: ADRtjWLkttBbMQLpMADF
 Content-Type: application/json
 
 {
@@ -15,8 +16,9 @@ Content-Type: application/json
 ### Add Bulk Message
 POST http://localhost:5002/notify/message/bulk
 Content-Type: application/json
-clientid: ee2e931f67574bbe916650ef415a5e1a
-secret: MANPcQzdWJASQKHAphxC
+email: muthurimixphone@gmail.com
+clientid: 98590c398a254d2898838e1b17381575
+secret: ADRtjWLkttBbMQLpMADF
 
 [
 	{
@@ -115,8 +117,9 @@ secret: MANPcQzdWJASQKHAphxC
 ### Add Template Message
 POST http://localhost:5002/notify/template-message
 Content-Type: application/json
-clientid: ee2e931f67574bbe916650ef415a5e1a
-secret: MANPcQzdWJASQKHAphxC
+email: muthurimixphone@gmail.com
+clientid: 98590c398a254d2898838e1b17381575
+secret: ADRtjWLkttBbMQLpMADF
 
 {
 	"templateId": 1,
@@ -130,8 +133,9 @@ secret: MANPcQzdWJASQKHAphxC
 
 ### Add Bulk Template Message
 POST http://localhost:5002/notify/template-message/bulk
-clientid: ee2e931f67574bbe916650ef415a5e1a
-secret: MANPcQzdWJASQKHAphxC
+email: muthurimixphone@gmail.com
+clientid: 98590c398a254d2898838e1b17381575
+secret: ADRtjWLkttBbMQLpMADF
 Content-Type: application/json
 
 [
