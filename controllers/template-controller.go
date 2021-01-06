@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-frame/responses"
 	"github.com/greatfocus/gf-notify/models"
@@ -20,9 +21,9 @@ type TemplateController struct {
 }
 
 // Init method
-func (t *TemplateController) Init(db *database.DB) {
+func (t *TemplateController) Init(db *database.Conn, cache *cache.Cache) {
 	t.templateRepository = &repositories.TemplateRepository{}
-	t.templateRepository.Init(db)
+	t.templateRepository.Init(db, cache)
 }
 
 // Handler method routes to http methods supported
@@ -38,7 +39,7 @@ func (t *TemplateController) Handler(w http.ResponseWriter, r *http.Request) {
 		t.delete(w, r)
 	default:
 		err := errors.New("Invalid Request")
-		responses.Error(w, http.StatusUnprocessableEntity, err)
+		responses.Error(w, http.StatusNotFound, err)
 		return
 	}
 }
@@ -52,7 +53,7 @@ func (t *TemplateController) get(w http.ResponseWriter, r *http.Request) {
 		templates := []models.Template{}
 		templates, err = t.templateRepository.GetTemplates(page)
 		if err != nil {
-			responses.Error(w, http.StatusBadRequest, err)
+			responses.Error(w, http.StatusUnprocessableEntity, err)
 			return
 		}
 		responses.Success(w, http.StatusOK, templates)
@@ -70,7 +71,7 @@ func (t *TemplateController) add(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadGateway, derr)
 		return
 	}
 	template := models.Template{}
@@ -78,7 +79,7 @@ func (t *TemplateController) add(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadGateway, derr)
 		return
 	}
 	template.PrepareTempate()
@@ -99,7 +100,8 @@ func (t *TemplateController) add(w http.ResponseWriter, r *http.Request) {
 
 	result := models.Template{}
 	result.PrepareTemplateOutput(createdTemplate)
-	responses.Success(w, http.StatusCreated, result)
+	responses.Success(w, http.StatusOK, result)
+	return
 }
 
 // update method adds new template
@@ -108,7 +110,7 @@ func (t *TemplateController) update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadGateway, derr)
 		return
 	}
 	template := models.Template{}
@@ -116,7 +118,7 @@ func (t *TemplateController) update(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadGateway, derr)
 		return
 	}
 
@@ -137,7 +139,8 @@ func (t *TemplateController) update(w http.ResponseWriter, r *http.Request) {
 
 	result := models.Template{}
 	result.PrepareTemplateOutput(template)
-	responses.Success(w, http.StatusCreated, result)
+	responses.Success(w, http.StatusOK, result)
+	return
 }
 
 // requestMessage method delete templates
@@ -146,9 +149,9 @@ func (t *TemplateController) delete(w http.ResponseWriter, r *http.Request) {
 
 	if len(idStr) != 0 {
 		id, err := strconv.ParseInt(idStr, 10, 64)
-		err = t.templateRepository.DeleteTemplate(id, 1)
+		err = t.templateRepository.DeleteTemplate(id)
 		if err != nil {
-			responses.Error(w, http.StatusBadRequest, err)
+			responses.Error(w, http.StatusUnprocessableEntity, err)
 			return
 		}
 		responses.Success(w, http.StatusOK, id)

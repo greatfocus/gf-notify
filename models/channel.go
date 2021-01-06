@@ -13,17 +13,15 @@ type Channel struct {
 	Name       string    `json:"name,omitempty"`
 	StaticName string    `json:"staticName,omitempty"`
 	Priority   int64     `json:"priority,omitempty"`
-	CreatedBy  int64     `json:"createdBy,omitempty"`
 	CreatedOn  time.Time `json:"createdOn,omitempty"`
-	UpdatedBy  int64     `json:"updatedBy,omitempty"`
 	UpdatedOn  time.Time `json:"updatedOn,omitempty"`
 	Enabled    bool      `json:"enabled,omitempty"`
 }
 
 // PrepareChannel initiliazes the channel request object
-func (c *Channel) PrepareChannel(r *http.Request) error {
+func (c *Channel) PrepareChannel(r *http.Request) {
+	c.CreatedOn = time.Now()
 	c.UpdatedOn = time.Now()
-	return nil
 }
 
 // ValidateChannel check if request is valid
@@ -35,9 +33,6 @@ func (c *Channel) ValidateChannel(action string) error {
 		}
 		if c.Priority == 0 {
 			return errors.New("Required Priority")
-		}
-		if c.UpdatedBy == 0 {
-			return errors.New("Required UpdatedBy")
 		}
 		return nil
 	default:

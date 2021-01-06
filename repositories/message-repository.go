@@ -9,14 +9,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-notify/models"
 )
 
 // MessageRepository struct
 type MessageRepository struct {
-	db  *database.DB
-	ctx context.Context
+	db    *database.Conn
+	cache *cache.Cache
+	ctx   context.Context
 }
 
 // QueryParam struct
@@ -38,8 +40,9 @@ type MessageParam struct {
 }
 
 // Init method
-func (repo *MessageRepository) Init(db *database.DB) {
+func (repo *MessageRepository) Init(db *database.Conn, cache *cache.Cache) {
 	repo.db = db
+	repo.cache = cache
 }
 
 // getYearAndMonth returns the year and month
@@ -84,8 +87,7 @@ func messageMapper(rows *sql.Rows) ([]models.Message, error) {
 	for rows.Next() {
 		var message models.Message
 		err := rows.Scan(&message.ID, &message.ChannelID, &message.Channel, &message.Recipient, &message.Subject, &message.Content,
-			&message.CreatedBy, &message.CreatedOn, &message.ExpireOn, &message.StatusID, &message.Status,
-			&message.Attempts, &message.Priority)
+			&message.CreatedOn, &message.ExpireOn, &message.StatusID, &message.Status, &message.Attempts, &message.Priority)
 		if err != nil {
 			return nil, err
 		}
@@ -98,7 +100,7 @@ func messageMapper(rows *sql.Rows) ([]models.Message, error) {
 // insert adds new  database record
 func insert(params *QueryParam) (int64, error) {
 	var id int64
-	err := params.Repo.db.Conn.QueryRow(params.Statement, params.Args...).Scan(&id)
+	err := params.Repo.db.Master.Conn.QueryRow(params.Statement, params.Args...).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -107,7 +109,7 @@ func insert(params *QueryParam) (int64, error) {
 
 // update makes changes to database record
 func update(params *QueryParam, rowCount int64) (bool, error) {
-	res, err := params.Repo.db.Conn.Exec(params.Statement, params.Args...)
+	res, err := params.Repo.db.Master.Conn.Exec(params.Statement, params.Args...)
 	if err != nil {
 		return false, err
 	}
@@ -127,7 +129,7 @@ func update(params *QueryParam, rowCount int64) (bool, error) {
 
 // queryMessages executes to get messages
 func query(params *QueryParam) ([]models.Message, error) {
-	rows, err := params.Repo.db.Conn.Query(params.Statement, params.Args...)
+	rows, err := params.Repo.db.Master.Conn.Query(params.Statement, params.Args...)
 	if err != nil {
 		return nil, err
 	}
@@ -169,12 +171,12 @@ func prepareInStatement(arg []interface{}) string {
 func (repo *MessageRepository) ReportMessages(table string, channel int64, year int64, month int64, page int64) ([]models.Message, error) {
 	// prepare the statement
 	statement := `
-	select m.id, m.channelId, c.name as channel, m.recipient, m.subject, m.content, m.createdBy, m.createdOn, m.expireOn, m.statusId, s.name as status, 0 as attempts, m.priority 
+	select m.id, m.channelId, c.name as channel, m.recipient, m.subject, m.content, m.createdOn, m.expireOn, m.statusId, s.name as status, 0 as attempts, m.priority 
 	from $table m
 	inner join channel c on c.id = m.channelId
 	inner join status s on s.id = m.statusId
 	where m.channelId = $1
-	order BY m.createdOn ASC limit 500 OFFSET $2-1
+	order BY m.id DESC limit 500 OFFSET $2-1
 	`
 	// prepare the args
 	var args []interface{}
@@ -190,13 +192,13 @@ func (repo *MessageRepository) ReportMessages(table string, channel int64, year 
 func (repo *MessageRepository) GetMessages(table string, messageParam MessageParam) ([]models.Message, error) {
 	// prepare the statement
 	statement := `
-	select m.id, m.channelId, c.name as channel, m.recipient, m.subject, m.content, m.createdBy, m.createdOn, m.expireOn, m.statusId, s.name as status, m.attempts, m.priority 
+	select m.id, m.channelId, c.name as channel, m.recipient, m.subject, m.content, m.createdOn, m.expireOn, m.statusId, s.name as status, m.attempts, m.priority 
 	from $table m
 	inner join channel c on c.id = m.channelId
 	inner join status s on s.id = m.statusId
 	where 
 		channelId = $1 and m.statusId=$2 and m.attempts<$3
-	order BY createdOn ASC limit 500 OFFSET $4-1
+	order BY m.id DESC limit 500 OFFSET $4-1
 	`
 	// prepare the args
 	var args []interface{}
@@ -208,14 +210,14 @@ func (repo *MessageRepository) GetMessages(table string, messageParam MessagePar
 // Add method created new message request
 func (repo *MessageRepository) Add(table string, message models.Message) (models.Message, error) {
 	statement := `
-    insert into $table (channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, priority)
-    values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    insert into $table (channelId, recipient, subject, content, createdOn, expireOn, statusId, priority)
+    values ($1, $2, $3, $4, $5, $6, $7, $8)
     returning id
 	`
 
 	var args []interface{}
 	args = append(args, message.ChannelID, message.Recipient, message.Subject, message.Content,
-		message.CreatedBy, message.CreatedOn, message.ExpireOn, message.StatusID, message.Priority)
+		message.CreatedOn, message.ExpireOn, message.StatusID, message.Priority)
 	queryParams := newQueryParams(table, replaceTableHolder(table, statement), args, repo)
 	id, err := insert(queryParams)
 	if err != nil {
@@ -305,12 +307,12 @@ func (repo *MessageRepository) MoveStagedToQueue() (bool, error) {
 			WHERE ID IN (
 				SELECT ID
 				FROM staging$tt
-				ORDER BY createdOn
+				ORDER BY id
 				LIMIT 500)
 			RETURNING *
 		), insert_moved_rows AS (
-			INSERT INTO queue$tt (id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority)
-			SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, 2, 0, priority FROM moved_rows
+			INSERT INTO queue$tt (id, channelId, recipient, subject, content, createdOn, expireOn, statusId, attempts, priority)
+			SELECT id, channelId, recipient, subject, content, createdOn, expireOn, 2, 0, priority FROM moved_rows
 		)		
 		UPDATE dashboard
 		SET 
@@ -321,7 +323,7 @@ func (repo *MessageRepository) MoveStagedToQueue() (bool, error) {
 	`
 
 	query := replaceTimeHolder(statement)
-	_, err := repo.db.Conn.Exec(query)
+	_, err := repo.db.Master.Conn.Exec(query)
 	if err != nil {
 		return false, err
 	}
@@ -338,7 +340,7 @@ func (repo *MessageRepository) ReQueueProcessingEmails() (bool, error) {
 		WHERE statusid=3 and EXTRACT(MINUTE FROM updatedOn) > 10;
 	`
 	query := replaceTimeHolder(statement)
-	_, err := repo.db.Conn.Exec(query)
+	_, err := repo.db.Master.Conn.Exec(query)
 	if err != nil {
 		return false, err
 	}
@@ -362,12 +364,12 @@ func (repo *MessageRepository) MoveOutFailedQueue() (bool, error) {
 				SELECT ID
 				FROM queue$tt
 				WHERE statusid=5
-				ORDER BY createdOn
+				ORDER BY id
 				LIMIT 500)
 			RETURNING *
 		), insert_moved_rows AS (
-			INSERT INTO failed$tt (id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference)
-			SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows
+			INSERT INTO failed$tt (id, channelId, recipient, subject, content, createdOn, expireOn, statusId, attempts, priority, reference)
+			SELECT id, channelId, recipient, subject, content, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows
 		)
 		UPDATE dashboard
 		SET 
@@ -378,7 +380,7 @@ func (repo *MessageRepository) MoveOutFailedQueue() (bool, error) {
 	`
 
 	query := replaceTimeHolder(statement)
-	_, err := repo.db.Conn.Exec(query)
+	_, err := repo.db.Master.Conn.Exec(query)
 	if err != nil {
 		return false, err
 	}
@@ -402,12 +404,12 @@ func (repo *MessageRepository) MoveOutCompleteQueue() (bool, error) {
 				SELECT ID
 				FROM queue$tt
 				WHERE statusId=4
-				ORDER BY createdOn
+				ORDER BY id
 				LIMIT 500)
 			RETURNING *
 		), insert_moved_rows AS (
-			INSERT INTO complete$tt (id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference)
-			SELECT id, channelId, recipient, subject, content, createdBy, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows
+			INSERT INTO complete$tt (id, channelId, recipient, subject, content, createdOn, expireOn, statusId, attempts, priority, reference)
+			SELECT id, channelId, recipient, subject, content, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows
 		)
 		UPDATE dashboard
 		SET 
@@ -418,7 +420,7 @@ func (repo *MessageRepository) MoveOutCompleteQueue() (bool, error) {
 	`
 
 	query := replaceTimeHolder(statement)
-	_, err := repo.db.Conn.Exec(query)
+	_, err := repo.db.Master.Conn.Exec(query)
 	if err != nil {
 		return false, err
 	}

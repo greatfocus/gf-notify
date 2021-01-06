@@ -14,23 +14,16 @@ type Template struct {
 	Subject     string    `json:"subject,omitempty"`
 	Body        string    `json:"body,omitempty"`
 	ParamsCount int64     `json:"paramsCount,omitempty"`
-	CreatedBy   int64     `json:"-"`
 	CreatedOn   time.Time `json:"-"`
-	UpdatedBy   int64     `json:"-"`
 	UpdatedOn   time.Time `json:"-"`
 	Enabled     bool      `json:"-"`
 	Deleted     bool      `json:"-"`
 }
 
 // PrepareTempate initiliazes the Template request object
-func (t *Template) PrepareTempate() error {
+func (t *Template) PrepareTempate() {
 	t.UpdatedOn = time.Now()
 	t.CreatedOn = time.Now()
-
-	// TODO:consider making API call to users
-	t.CreatedBy = 1
-	t.UpdatedBy = 1
-	return nil
 }
 
 // ValidateTemplate check if request is valid

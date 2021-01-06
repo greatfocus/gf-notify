@@ -15,39 +15,39 @@ func Router(s *server.Server) *http.ServeMux {
 	// create new router
 	mux := http.NewServeMux()
 
-	// users
-	usersRoute(mux, s)
+	// routes
+	notifyRoute(mux, s)
 
 	log.Println("Created routes with controllers")
 	return mux
 }
 
-// usersRoute created all routes and handlers relating to user controller
-func usersRoute(mux *http.ServeMux, s *server.Server) {
+// notifyRoute created all routes and handlers relating to controller
+func notifyRoute(mux *http.ServeMux, s *server.Server) {
 	// Initialize controller
 	messageController := controllers.MessageController{}
-	messageController.Init(s.DB)
+	messageController.Init(s.DB, s.Cache)
 
 	messageBulkController := controllers.MessageBulkController{}
-	messageBulkController.Init(s.DB)
+	messageBulkController.Init(s.DB, s.Cache)
 
 	channelController := controllers.ChannelController{}
-	channelController.Init(s.DB)
+	channelController.Init(s.DB, s.Cache)
 
 	dashboardController := controllers.DashboardController{}
-	dashboardController.Init(s.DB)
+	dashboardController.Init(s.DB, s.Cache)
 
 	templateController := controllers.TemplateController{}
-	templateController.Init(s.DB)
+	templateController.Init(s.DB, s.Cache)
 
 	templateMessageController := controllers.TemplateMessageController{}
-	templateMessageController.Init(s.DB)
+	templateMessageController.Init(s.DB, s.Cache)
 
 	templateMessageBulkController := controllers.TemplateMessageBulkController{}
-	templateMessageBulkController.Init(s.DB)
+	templateMessageBulkController.Init(s.DB, s.Cache)
 
 	reportController := controllers.ReportController{}
-	reportController.Init(s.DB)
+	reportController.Init(s.DB, s.Cache)
 
 	// Initialize routes
 	mux.HandleFunc("/notify/channel", middlewares.SetMiddlewareClient(channelController.Handler, s))

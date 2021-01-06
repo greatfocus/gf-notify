@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-frame/responses"
 	"github.com/greatfocus/gf-notify/models"
@@ -19,9 +20,9 @@ type ChannelController struct {
 }
 
 // Init method
-func (c *ChannelController) Init(db *database.DB) {
+func (c *ChannelController) Init(db *database.Conn, cache *cache.Cache) {
 	c.channelRepository = &repositories.ChannelRepository{}
-	c.channelRepository.Init(db)
+	c.channelRepository.Init(db, cache)
 }
 
 // Handler method routes to http methods supported
@@ -33,7 +34,7 @@ func (c *ChannelController) Handler(w http.ResponseWriter, r *http.Request) {
 		c.updateChannel(w, r)
 	default:
 		err := errors.New("Invalid Request")
-		responses.Error(w, http.StatusUnprocessableEntity, err)
+		responses.Error(w, http.StatusNotFound, err)
 		return
 	}
 }
@@ -44,7 +45,7 @@ func (c *ChannelController) updateChannel(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 	channel := models.Channel{}
@@ -52,15 +53,11 @@ func (c *ChannelController) updateChannel(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadRequest, derr)
 		return
 	}
-	err = channel.PrepareChannel(r)
-	if err != nil {
-		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, err)
-		return
-	}
+
+	channel.PrepareChannel(r)
 	err = channel.ValidateChannel("update")
 	if err != nil {
 		log.Printf("Error: %v\n", err)
@@ -76,7 +73,8 @@ func (c *ChannelController) updateChannel(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	responses.Success(w, http.StatusCreated, channel)
+	responses.Success(w, http.StatusOK, channel)
+	return
 }
 
 // requestMessage method creates a message request
@@ -84,7 +82,7 @@ func (c *ChannelController) getChannels(w http.ResponseWriter, r *http.Request) 
 	channels := []models.Channel{}
 	channels, err := c.channelRepository.GetChannels()
 	if err != nil {
-		responses.Error(w, http.StatusBadRequest, err)
+		responses.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 	responses.Success(w, http.StatusOK, channels)

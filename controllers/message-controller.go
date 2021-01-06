@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-frame/responses"
 	"github.com/greatfocus/gf-notify/models"
@@ -19,9 +20,9 @@ type MessageController struct {
 }
 
 // Init method
-func (c *MessageController) Init(db *database.DB) {
+func (c *MessageController) Init(db *database.Conn, cache *cache.Cache) {
 	c.messageRepository = &repositories.MessageRepository{}
-	c.messageRepository.Init(db)
+	c.messageRepository.Init(db, cache)
 }
 
 // Handler method routes to http methods supported
@@ -31,7 +32,7 @@ func (c *MessageController) Handler(w http.ResponseWriter, r *http.Request) {
 		c.add(w, r)
 	default:
 		err := errors.New("Invalid Request")
-		responses.Error(w, http.StatusUnprocessableEntity, err)
+		responses.Error(w, http.StatusNotFound, err)
 		return
 	}
 }
@@ -42,7 +43,7 @@ func (c *MessageController) add(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadGateway, derr)
 		return
 	}
 	message := models.Message{}
@@ -50,15 +51,10 @@ func (c *MessageController) add(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadGateway, derr)
 		return
 	}
-	err = message.PrepareInput(r)
-	if err != nil {
-		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, err)
-		return
-	}
+	message.PrepareInput(r)
 	err = message.Validate("new")
 	if err != nil {
 		log.Printf("Error: %v\n", err)
@@ -76,5 +72,6 @@ func (c *MessageController) add(w http.ResponseWriter, r *http.Request) {
 
 	result := models.Message{}
 	result.PrepareOutput(createdMessage)
-	responses.Success(w, http.StatusCreated, result)
+	responses.Success(w, http.StatusOK, result)
+	return
 }

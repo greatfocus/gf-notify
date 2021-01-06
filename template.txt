@@ -1,0 +1,64 @@
+-------------------
+client_credentials : Respect Client Credentials
+-------------------
+Dear Customer,\n\n
+You have succefully received your login credentials from your Respect Obituary account.\n
+Your security question and answer details are as mentioned below.\n\n
+client:- $1\n
+secret:- $2 \n\n
+Kindly remember the security credentials as they will be needed to reset your password in case you forget your password.\n
+Thank you for choosing our service.\n
+Thank You.\n\n\n\n
+Regards,\n
+Great Focus\n\n\n\n
+
+
+-------------------
+email_otp : Respect OTP for Email Verification
+-------------------
+Dear Customer,\n\n
+You have requested for verification of email address through Respect system.\n
+This is to inform you that your request for email verification has been done successfully.\n\n
+Use following OTP for further proceeding.\n\n
+OTP For Email Verification:- $1\n\n
+Thank You.\n\n\n\n
+Regards,\n
+Great Focus\n\n\n\n
+
+
+-------------------
+first_login : Respect First Time login : Success
+-------------------
+Dear Customer,\n\n
+You have succefully Completed first time login for your Respect Obituary account.\n
+Kindly remember the security credentials as they will be needed to reset your password in case you forget your password.\n
+Thank you for choosing our service.\n
+Thank You.\n\n\n\n
+Regards,\n
+Great Focus\n\n\n\n
+
+
+-------------------
+password_reset : Respect Password Reset
+-------------------
+Dear Customer,\n\n
+Please note your password has been reset successfully. If you did not make this request, please contact our Customer Experience Center and our team will respond to you soon.\n
+Please note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\n
+We regret any delays in reply during non-working hours.\n
+Serving you is our top priority.\n\n
+Thank You.\n\n\n\n
+Regards,\n
+Great Focus\n\n\n\n
+
+
+-------------------
+contact_us : Respect Someone Reached Us
+-------------------
+Dear Customer,\n\n
+Thank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\n
+Please note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\n
+We regret any delays in reply during non-working hours.\n
+Serving you is our top priority.\n\n
+Thank You.\n\n\n\n
+Regards,\n
+Great Focus\n\n\n\n

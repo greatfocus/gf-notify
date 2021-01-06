@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-frame/responses"
 	"github.com/greatfocus/gf-notify/models"
@@ -18,9 +19,9 @@ type DashboardController struct {
 }
 
 // Init method
-func (d *DashboardController) Init(db *database.DB) {
+func (d *DashboardController) Init(db *database.Conn, cache *cache.Cache) {
 	d.dashboardRepository = &repositories.DashboardRepository{}
-	d.dashboardRepository.Init(db)
+	d.dashboardRepository.Init(db, cache)
 }
 
 // Handler method routes to http methods supported
@@ -30,7 +31,7 @@ func (d *DashboardController) Handler(w http.ResponseWriter, r *http.Request) {
 		d.getDashboard(w, r)
 	default:
 		err := errors.New("Invalid Request")
-		responses.Error(w, http.StatusUnprocessableEntity, err)
+		responses.Error(w, http.StatusNotFound, err)
 		return
 	}
 }
@@ -59,7 +60,7 @@ func (d *DashboardController) getDashboard(w http.ResponseWriter, r *http.Reques
 		dashboard := models.Dashboard{}
 		dashboard, err = d.dashboardRepository.GetDashboard(year, month)
 		if err != nil {
-			responses.Error(w, http.StatusBadRequest, err)
+			responses.Error(w, http.StatusUnprocessableEntity, err)
 			return
 		}
 		responses.Success(w, http.StatusOK, dashboard)

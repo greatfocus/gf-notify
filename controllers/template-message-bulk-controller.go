@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-frame/responses"
 	"github.com/greatfocus/gf-notify/models"
@@ -20,11 +21,11 @@ type TemplateMessageBulkController struct {
 }
 
 // Init method
-func (m *TemplateMessageBulkController) Init(db *database.DB) {
+func (m *TemplateMessageBulkController) Init(db *database.Conn, cache *cache.Cache) {
 	m.messageRepository = &repositories.MessageRepository{}
-	m.messageRepository.Init(db)
+	m.messageRepository.Init(db, cache)
 	m.templateRepository = &repositories.TemplateRepository{}
-	m.templateRepository.Init(db)
+	m.templateRepository.Init(db, cache)
 }
 
 // Handler method routes to http methods supported
@@ -34,7 +35,7 @@ func (m *TemplateMessageBulkController) Handler(w http.ResponseWriter, r *http.R
 		m.addMessage(w, r)
 	default:
 		err := errors.New("Invalid Request")
-		responses.Error(w, http.StatusUnprocessableEntity, err)
+		responses.Error(w, http.StatusNotFound, err)
 		return
 	}
 }
@@ -45,7 +46,7 @@ func (m *TemplateMessageBulkController) addMessage(w http.ResponseWriter, r *htt
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadGateway, derr)
 		return
 	}
 	messages := []models.Message{}
@@ -53,13 +54,13 @@ func (m *TemplateMessageBulkController) addMessage(w http.ResponseWriter, r *htt
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadGateway, derr)
 		return
 	}
 
 	// maximum bulk insert is 100
 	if len(messages) > 100 {
-		err := errors.New("Required Content")
+		err := errors.New("Maximum payload reached")
 		log.Printf("Error: %v\n", err)
 		responses.Error(w, http.StatusUnprocessableEntity, err)
 		return
@@ -76,6 +77,7 @@ func (m *TemplateMessageBulkController) addMessage(w http.ResponseWriter, r *htt
 	Validate(w, msg)
 	PrepareInput(w, r, msg)
 	BulkInsert(w, r, m.messageRepository, msg)
+	return
 }
 
 // PrepareTemplateInput bulk messages

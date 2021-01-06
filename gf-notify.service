@@ -1,6 +1,6 @@
 [Unit]
 Description= Instance for sending emails and sms
-ConditionPathExists=/home/muthurimi/go/src/github.com/greatfocus/gf-notify/gf-notify
+ConditionPathExists=/app/gf-notify/gf-notify
 After=network.target
 
 [Service]
@@ -13,8 +13,8 @@ Restart=on-failure
 RestartSec=10
 
 EnvironmentFile=/etc/sysconfig/respect.env
-WorkingDirectory=/home/muthurimi/go/src/github.com/greatfocus/gf-notify/
-ExecStart=/home/muthurimi/go/src/github.com/greatfocus/gf-notify/gf-notify ${ARG1}
+WorkingDirectory=/app/gf-notify/
+ExecStart=/app/gf-notify/gf-notify ${ARG1}
 
 # make sure log directory exists and owned by syslog
 PermissionsStartOnly=true

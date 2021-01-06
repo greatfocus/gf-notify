@@ -1,0 +1,1 @@
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_template_active_id ON template USING BTREE(id, deleted);

@@ -3,6 +3,7 @@ package task
 import (
 	"log"
 
+	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/config"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-notify/repositories"
@@ -13,13 +14,13 @@ import (
 type Tasks struct {
 	messageRepository *repositories.MessageRepository
 	config            *config.Config
-	db                *database.DB
+	db                *database.Conn
 }
 
 // Init required parameters
-func (t *Tasks) Init(db *database.DB, config *config.Config) {
+func (t *Tasks) Init(db *database.Conn, cache *cache.Cache, config *config.Config) {
 	t.messageRepository = &repositories.MessageRepository{}
-	t.messageRepository.Init(db)
+	t.messageRepository.Init(db, cache)
 	t.config = config
 	t.db = db
 }
@@ -28,34 +29,14 @@ func (t *Tasks) Init(db *database.DB, config *config.Config) {
 func (t *Tasks) SendQueuedEmails() {
 	log.Println("Scheduler_SendQueuedEmails started")
 	request := services.EmailService{
-		Host:     t.config.Email.Host,
-		Port:     t.config.Email.Port,
-		From:     t.config.Email.From,
-		User:     t.config.Email.User,
-		Password: t.config.Email.Password,
+		Host:     t.config.Integrations.Email.Host,
+		Port:     t.config.Integrations.Email.Port,
+		From:     t.config.Integrations.Email.From,
+		User:     t.config.Integrations.Email.User,
+		Password: t.config.Integrations.Email.Password,
 	}
 	services.SendQueuedEmails(t.messageRepository, &request)
 	log.Println("Scheduler_SendQueuedEmails ended")
-}
-
-/**
-Running database script is important for the following
-1. To archive archiving of data in the tables, we create tables every month
-2. This creates new tables for the new month and reduce the database load to query
-3. We have also split the tables into staging, queue, failed and done to avoid database deadlocks
-	- staging: new messages from the API go in here. This reduces deadlock in jobs since http bulk messages can cause performance isssues
-	- queue: messages are moved here as current messages being sent. This helps to isolate process
-	- failed: all failed messages go in here, this helps to wipe and reduce the queue
-	- complete: all successful messages are isolated here, this helps with reports isolation
-4. This breadown structure also helps with generating a proper dashboard for messages and reporting
-**/
-
-// RunDatabaseScripts intiates running database scripts
-func (t *Tasks) RunDatabaseScripts() {
-	log.Println("Scheduler_RunDatabaseScripts started")
-	var db = database.DB{}
-	db.Connect(t.config)
-	log.Println("Scheduler_RunDatabaseScripts ended")
 }
 
 // MoveStagedToQueue ...
@@ -120,4 +101,40 @@ func (t *Tasks) MoveOutCompleteQueue() {
 		return
 	}
 	log.Println("Scheduler_MoveOutCompleteQueue succeded")
+}
+
+/**
+Running database script is important for the following
+1. To archive archiving of data in the tables, we create tables every month
+2. This creates new tables for the new month and reduce the database load to query
+3. We have also split the tables into staging, queue, failed and done to avoid database deadlocks
+	- staging: new messages from the API go in here. This reduces deadlock in jobs since http bulk messages can cause performance isssues
+	- queue: messages are moved here as current messages being sent. This helps to isolate process
+	- failed: all failed messages go in here, this helps to wipe and reduce the queue
+	- complete: all successful messages are isolated here, this helps with reports isolation
+4. This breadown structure also helps with generating a proper dashboard for messages and reporting
+**/
+
+// RunDatabaseScripts intiates running database scripts
+func (t *Tasks) RunDatabaseScripts() {
+	log.Println("Scheduler_RunDatabaseScripts started")
+	if t.config.Database.Master.ExecuteSchema {
+		t.db.Master.ExecuteSchema(t.db.Master.Conn)
+	}
+	if t.config.Database.Slave.ExecuteSchema {
+		t.db.Slave.ExecuteSchema(t.db.Slave.Conn)
+	}
+	log.Println("Scheduler_RunDatabaseScripts ended")
+}
+
+// RebuildIndexes make changes to indexes
+func (t *Tasks) RebuildIndexes() {
+	log.Println("Scheduler_RebuildIndexes started")
+	if t.config.Database.Master.ExecuteSchema {
+		t.db.Master.RebuildIndexes(t.db.Master.Conn, "gf_query")
+	}
+	if t.config.Database.Slave.ExecuteSchema {
+		t.db.Slave.RebuildIndexes(t.db.Slave.Conn, "gf_query")
+	}
+	log.Println("Scheduler_RebuildIndexes ended")
 }

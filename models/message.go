@@ -18,7 +18,6 @@ type Message struct {
 	Recipient  string    `json:"recipient,omitempty"`
 	Subject    string    `json:"subject,omitempty"`
 	Content    string    `json:"content,omitempty"`
-	CreatedBy  int64     `json:"createdBy,omitempty"`
 	CreatedOn  time.Time `json:"-"`
 	ExpireOn   time.Time `json:"-"`
 	Operation  string    `json:"operation,omitempty"`
@@ -31,7 +30,7 @@ type Message struct {
 }
 
 // PrepareInput initiliazes the Message request object
-func (m *Message) PrepareInput(r *http.Request) error {
+func (m *Message) PrepareInput(r *http.Request) {
 	// All message have expiry date of 1 week
 	var expire = time.Now()
 	expire.AddDate(0, 0, 7)
@@ -40,16 +39,8 @@ func (m *Message) PrepareInput(r *http.Request) error {
 	m.StatusID = 1
 	m.Attempts = 0
 	m.Priority = setPriority(m.ChannelID)
-
 	m.CreatedOn = time.Now()
 	m.ExpireOn = expire
-	/*userID, err := jwt.ExtractTokenID(r)
-	if err != nil {
-		return errors.New("Invalid token")
-	}*/
-
-	m.CreatedBy = 1
-	return nil
 }
 
 // Validate check if request is valid

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-frame/responses"
 	"github.com/greatfocus/gf-notify/models"
@@ -22,11 +23,11 @@ type TemplateMessageController struct {
 }
 
 // Init method
-func (t *TemplateMessageController) Init(db *database.DB) {
+func (t *TemplateMessageController) Init(db *database.Conn, cache *cache.Cache) {
 	t.messageRepository = &repositories.MessageRepository{}
-	t.messageRepository.Init(db)
+	t.messageRepository.Init(db, cache)
 	t.templateRepository = &repositories.TemplateRepository{}
-	t.templateRepository.Init(db)
+	t.templateRepository.Init(db, cache)
 }
 
 // Handler method routes to http methods supported
@@ -36,7 +37,7 @@ func (t *TemplateMessageController) Handler(w http.ResponseWriter, r *http.Reque
 		t.add(w, r)
 	default:
 		err := errors.New("Invalid Request")
-		responses.Error(w, http.StatusUnprocessableEntity, err)
+		responses.Error(w, http.StatusNotFound, err)
 		return
 	}
 }
@@ -47,7 +48,7 @@ func (t *TemplateMessageController) add(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadGateway, derr)
 		return
 	}
 	message := models.Message{}
@@ -55,15 +56,10 @@ func (t *TemplateMessageController) add(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		responses.Error(w, http.StatusBadGateway, derr)
 		return
 	}
-	err = message.PrepareInput(r)
-	if err != nil {
-		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, err)
-		return
-	}
+	message.PrepareInput(r)
 	err = message.Validate("new-template")
 	if err != nil {
 		log.Printf("Error: %v\n", err)
@@ -88,7 +84,8 @@ func (t *TemplateMessageController) add(w http.ResponseWriter, r *http.Request) 
 
 	result := models.Message{}
 	result.PrepareOutput(createdMessage)
-	responses.Success(w, http.StatusCreated, result)
+	responses.Success(w, http.StatusOK, result)
+	return
 }
 
 func createTemplateMessage(messageRepo *repositories.MessageRepository, templateRepo *repositories.TemplateRepository, message models.Message) (models.Message, error) {
