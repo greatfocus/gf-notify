@@ -12,12 +12,3 @@ CREATE TABLE IF NOT EXISTS template (
 	UNIQUE(id),
 	UNIQUE(staticName)
 );
-
-DO $$ 
-BEGIN
-	INSERT INTO template (name, staticName, subject, body, paramsCount)
-	VALUES
-		('OTP', 'otp', 'Please verify your registration', 'Hello, \n\n Thank you for registering and partnering with us. To complete the registration, enter the verification code.\n\n <b>Verification code: $1</b> \n\n Thanks,\n The Respect Team', 1) 
-	ON CONFLICT
-	DO NOTHING;
-END $$;
