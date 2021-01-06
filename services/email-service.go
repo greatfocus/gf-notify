@@ -30,13 +30,10 @@ func SendMail(i int, email *EmailService, auth smtp.Auth, wg *sync.WaitGroup) {
 	sent := true
 	// hostname is used by PlainAuth to validate the TLS certificate.
 	to := []string{email.Recipients[i]}
-	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-	subject := email.Subjects[i] + "\n"
-	msg := []byte(subject + mime + "<html><body>" + email.Messages[i] + "</body></html>")
-	// msg := []byte("To: " + email.Recipients[i] + "\r\n" +
-	// 	"Subject: " + email.Subjects[i] + "\r\n" +
-	// 	"\r\n" +
-	// 	email.Messages[i] + ".\r\n")
+	msg := []byte("To: " + email.Recipients[i] + "\r\n" +
+		"Subject: " + email.Subjects[i] + "\r\n" +
+		"\r\n" +
+		email.Messages[i] + ".\r\n")
 
 	// Please watch out here not to have golang panic error. This means there might be some jobs in progres that may never resolve
 	err := smtp.SendMail(email.Host+":"+email.Port, auth, email.From, to, msg)

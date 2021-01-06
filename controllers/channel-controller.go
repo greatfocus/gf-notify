@@ -30,7 +30,7 @@ func (c *ChannelController) Handler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		c.getChannels(w, r)
-	case http.MethodPost:
+	case http.MethodPut:
 		c.updateChannel(w, r)
 	default:
 		err := errors.New("Invalid Request")

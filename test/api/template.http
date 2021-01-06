@@ -1,45 +1,60 @@
+@hostname = 127.0.0.1
+@port = 5002
+@host = {{hostname}}:{{port}}
+@contentType = application/json
+@email = muthurimixphone@gmail.com
+@clientid = 98590c398a254d2898838e1b17381575
+@secret = ADRtjWLkttBbMQLpMADF
+
+
 ### Get Template
-GET http://localhost:5002/notify/template?page=1
-Content-Type: application/json
-email: muthurimixphone@gmail.com
-clientid: 98590c398a254d2898838e1b17381575
-secret: ADRtjWLkttBbMQLpMADF
+# @name getTemplate
+GET http://{{host}}/notify/template?page=1
+Content-Type: {{contentType}}
+email: {{email}}
+clientid: {{clientid}}
+secret: {{secret}}
 
 
 ### Add Template
-POST http://localhost:5002/notify/template
-Content-Type: application/json
-email: muthurimixphone@gmail.com
-clientid: 98590c398a254d2898838e1b17381575
-secret: ADRtjWLkttBbMQLpMADF
+# @name addTemplate
+POST http://{{host}}/notify/template
+Content-Type: {{contentType}}
+email: {{email}}
+clientid: {{clientid}}
+secret: {{secret}}
 
 {
-	"name" : "Client Credentials",
-	"staticName": "client_credentials",
-	"subject": "Client Credentials",
-	"body": "Hi, \nWe hereby notify you request to access API service has been granted. See below you credentials clientId:  $1, secret: $2 for login. Kindly share with is your experience with us, we would be glad to receive your feedback. \n\nThe Respect Team",
-	"paramsCount": 2
+	"name" : "Test",
+	"staticName": "test",
+	"subject": "Test",
+	"body": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n",
+	"paramsCount": 0
 }
 
+
 ### Edit Template
-PUT http://localhost:5002/notify/template
-Content-Type: application/json
-email: muthurimixphone@gmail.com
-clientid: 98590c398a254d2898838e1b17381575
-secret: ADRtjWLkttBbMQLpMADF
+# @name editTemplate
+PUT http://{{host}}/notify/template
+Content-Type: {{contentType}}
+email: {{email}}
+clientid: {{clientid}}
+secret: {{secret}}
 
 {
-    "id": 1,
-    "name": "OTP",
-    "staticName": "otp",
-    "subject": "Please verify your registration",
-    "body": "Hello, \\n\\n Thank you for registering and partnering with us. To complete the registration, enter the verification code.\\n\\n \u003cb\u003eVerification code: $1\u003c/b\u003e \\n\\n Thanks,\\n The Respect Team",
-    "paramsCount": 1
+    "id": 6,
+    "name": "Test",
+    "staticName": "test",
+    "subject": "Test",
+    "body": "test",
+	"paramsCount": 0
 }
 
-### Edit Template
-DELETE  http://localhost:5002/notify/template?id=4
-Content-Type: application/json
-email: muthurimixphone@gmail.com
-clientid: 98590c398a254d2898838e1b17381575
-secret: ADRtjWLkttBbMQLpMADF
+
+### Delete Template
+# @name deleteTemplate
+DELETE  http://{{host}}/notify/template?id=7
+Content-Type: {{contentType}}
+email: {{email}}
+clientid: {{clientid}}
+secret: {{secret}}

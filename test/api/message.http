@@ -1,158 +1,165 @@
+@hostname = 127.0.0.1
+@port = 5002
+@host = {{hostname}}:{{port}}
+@contentType = application/json
+@email = muthurimixphone@gmail.com
+@clientid = 98590c398a254d2898838e1b17381575
+@secret = ADRtjWLkttBbMQLpMADF
+
+
 ### Add Message
-POST http://localhost:5002/notify/message
-email: muthurimixphone@gmail.com
-clientid: 98590c398a254d2898838e1b17381575
-secret: ADRtjWLkttBbMQLpMADF
-Content-Type: application/json
+# @name addMessage
+POST http://{{host}}/notify/message
+Content-Type: {{contentType}}
+email: {{email}}
+clientid: {{clientid}}
+secret: {{secret}}
 
 {
 	"channelId" : 2,
 	"recipient": "mucunga90@gmail.com",
 	"subject": "Test",
-	"content": "Received message"
+	"content": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n"
 }
 
 
 ### Add Bulk Message
-POST http://localhost:5002/notify/message/bulk
-Content-Type: application/json
-email: muthurimixphone@gmail.com
-clientid: 98590c398a254d2898838e1b17381575
-secret: ADRtjWLkttBbMQLpMADF
+# @name addBulkMessage
+POST http://{{host}}/notify/message/bulk
+Content-Type: {{contentType}}
+email: {{email}}
+clientid: {{clientid}}
+secret: {{secret}}
 
 [
 	{
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
 		"subject": "Test",
-		"content": "Received message"
+		"content": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n"
 	},
 	{
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
 		"subject": "Test",
-		"content": "Received message"
+		"content": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n"
 	},
 	{
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
 		"subject": "Test",
-		"content": "Received message"
+		"content": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n"
 	},
 	{
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
 		"subject": "Test",
-		"content": "Received message"
+		"content": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n"
 	},
 	{
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
 		"subject": "Test",
-		"content": "Received message"
+		"content": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n"
 	},
 	{
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
 		"subject": "Test",
-		"content": "Received message"
+		"content": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n"
 	},
 	{
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
 		"subject": "Test",
-		"content": "Received message"
+		"content": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n"
 	},
 	{
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
 		"subject": "Test",
-		"content": "Received message"
+		"content": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n"
 	},
 	{
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
 		"subject": "Test",
-		"content": "Received message"
+		"content": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n"
 	},
 	{
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
 		"subject": "Test",
-		"content": "Received message"
+		"content": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n"
 	},
 	{
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
 		"subject": "Test",
-		"content": "Received message"
+		"content": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n"
 	},
 	{
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
 		"subject": "Test",
-		"content": "Received message"
+		"content": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n"
 	},
 	{
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
 		"subject": "Test",
-		"content": "Received message"
+		"content": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n"
 	},
 	{
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
 		"subject": "Test",
-		"content": "Received message"
+		"content": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n"
 	},
 	{
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
 		"subject": "Test",
-		"content": "Received message"
+		"content": "Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n"
 	}
 ]
 
 
 ### Add Template Message
-POST http://localhost:5002/notify/template-message
-Content-Type: application/json
-email: muthurimixphone@gmail.com
-clientid: 98590c398a254d2898838e1b17381575
-secret: ADRtjWLkttBbMQLpMADF
+# @name addTemplateMessage
+POST http://{{host}}/notify/template-message
+Content-Type: {{contentType}}
+email: {{email}}
+clientid: {{clientid}}
+secret: {{secret}}
 
 {
-	"templateId": 1,
+	"templateId": 7,
 	"channelId" : 2,
 	"recipient": "mucunga90@gmail.com",
-	"params": [
-		"41298"
-	]
+	"params": []
 }
 
 
 ### Add Bulk Template Message
-POST http://localhost:5002/notify/template-message/bulk
-email: muthurimixphone@gmail.com
-clientid: 98590c398a254d2898838e1b17381575
-secret: ADRtjWLkttBbMQLpMADF
-Content-Type: application/json
+# @name AddBulkTemplateMessage
+POST http://{{host}}/notify/template-message/bulk
+Content-Type: {{contentType}}
+email: {{email}}
+clientid: {{clientid}}
+secret: {{secret}}
 
 [
 	{
-		"templateId": 1,
+		"templateId": 7,
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
-		"params": [
-			"peter"
-		]
+		"params": []
 	},
 	{
-		"templateId": 1,
+		"templateId": 7,
 		"channelId" : 2,
 		"recipient": "mucunga90@gmail.com",
-		"params": [
-			"peter"
-		]
+		"params": []
 	}
 ]

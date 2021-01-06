@@ -137,7 +137,7 @@ func (repo *TemplateRepository) DeleteTemplate(id int64) error {
 	query := `
     update template
 	set 
-		staticName=CONCAT(staticName, '-', 'DELETED'),
+		staticName=CONCAT(id, '-', staticName, 'DELETED'),
 		updatedOn=CURRENT_TIMESTAMP,
 		enabled=false,
 		deleted=true

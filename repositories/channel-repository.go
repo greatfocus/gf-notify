@@ -28,11 +28,11 @@ func (repo *ChannelRepository) Init(db *database.Conn, cache *cache.Cache) {
 // UpdateChannel makes changes to the channel
 func (repo *ChannelRepository) UpdateChannel(channel models.Channel) error {
 	query := `
-    update channel
-	set 
-		priority=$2
+    UPDATE channel
+	SET 
+		priority=$2,
 		enabled=$3
-    where id=$1
+    WHERE id=$1
   	`
 	res, err := repo.db.Master.Conn.Exec(query, channel.ID, channel.Priority, channel.Enabled)
 	if err != nil {

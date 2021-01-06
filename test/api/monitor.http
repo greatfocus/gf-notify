@@ -1,13 +1,25 @@
-### dashboard
-GET http://localhost:5002/notify/dashboard?year=2020&month=11
-Content-Type: application/json
-email: muthurimixphone@gmail.com
-clientid: 98590c398a254d2898838e1b17381575
-secret: ADRtjWLkttBbMQLpMADF
+@hostname = 127.0.0.1
+@port = 5002
+@host = {{hostname}}:{{port}}
+@contentType = application/json
+@email = muthurimixphone@gmail.com
+@clientid = 98590c398a254d2898838e1b17381575
+@secret = ADRtjWLkttBbMQLpMADF
 
-### report
-GET http://localhost:5002/notify/report?table=complete&channel=2&year=2020&month=11&page=1
-Content-Type: application/json
-email: muthurimixphone@gmail.com
-clientid: 98590c398a254d2898838e1b17381575
-secret: ADRtjWLkttBbMQLpMADF
+
+### Dashboard
+# @name dashboard
+GET http://{{host}}/notify/dashboard?year=2021&month=1
+Content-Type: {{contentType}}
+email: {{email}}
+clientid: {{clientid}}
+secret: {{secret}}
+
+
+### Report
+# @name report
+GET http://{{host}}/notify/report?table=complete&channel=2&year=2021&month=1&page=1
+Content-Type: {{contentType}}
+email: {{email}}
+clientid: {{clientid}}
+secret: {{secret}}

@@ -1,6 +1,31 @@
-### create user
-GET http://localhost:5002/notify/channel
-Content-Type: application/json
-email: muthurimixphone@gmail.com
-clientid: 98590c398a254d2898838e1b17381575
-secret: ADRtjWLkttBbMQLpMADF
+@hostname = 127.0.0.1
+@port = 5002
+@host = {{hostname}}:{{port}}
+@contentType = application/json
+@email = muthurimixphone@gmail.com
+@clientid = 98590c398a254d2898838e1b17381575
+@secret = ADRtjWLkttBbMQLpMADF
+
+### Get Channel
+# @name getChannel
+GET http://{{host}}/notify/channel
+Content-Type: {{contentType}}
+email: {{email}}
+clientid: {{clientid}}
+secret: {{secret}}
+
+
+### Update Channel
+# @name updateChannel
+PUT http://{{host}}/notify/channel
+Content-Type: {{contentType}}
+email: {{email}}
+clientid: {{clientid}}
+secret: {{secret}}
+
+{
+    "id": 2,
+    "name": "email",
+    "staticName": "email",
+    "priority": 2
+}
