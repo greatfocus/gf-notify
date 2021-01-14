@@ -62,3 +62,31 @@ Serving you is our top priority.\n\n
 Thank You.\n\n\n\n
 Regards,\n
 Great Focus\n\n\n\n
+
+
+-------------------
+post_acknowledgment : Respect Obituary Acknowledgement
+-------------------
+Dear Customer,\n\n
+Thank you for for using the Respect Obituary service.\n
+We Acknowledgement receipt of your submission for $1, upon payment to our mpesa till number this shall be published.\n
+We regret any delays in reply during non-working hours.\n
+Serving you is our top priority.\n\n
+Thank You.\n\n\n\n
+Regards,\n
+Great Focus\n\n\n\n
+
+
+-------------------
+post_published : Respect Obituary Published
+-------------------
+Dear Customer,\n\n
+Thank you for for using the Respect Obituary service.\n
+We would like to notify you the Obituary $1 has been published.\n
+We regret any delays in reply during non-working hours.\n
+Serving you is our top priority.\n\n
+Thank You.\n\n\n\n
+Regards,\n
+Great Focus\n\n\n\n
+
+14672

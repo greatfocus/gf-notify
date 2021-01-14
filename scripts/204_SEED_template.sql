@@ -24,4 +24,14 @@ BEGIN
 		INSERT INTO template (name, staticName, subject, body, paramsCount)
 		VALUES ('Contact Us', 'contact_us', 'Respect Someone Reached Us', 'Dear Customer,\n\nThank you for contacting Respect Obituary. We have received your e-mail and our team will respond to you soon.\nPlease note our working hours are 0830 to 1630 (EAT) from Monday to Friday and 0900 to 1230 every last Saturday of the month.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n', 0);
 	END IF;
+
+	IF NOT EXISTS (SELECT 1 FROM template WHERE staticName='acknowledgment') THEN
+		INSERT INTO template (name, staticName, subject, body, paramsCount)
+		VALUES ('Acknowledgement', 'acknowledgment', 'Acknowledgement', 'Dear $1,\n\nThank you for for using the Respect Obituary service.\nWe Acknowledgement receipt of your submission for $2, upon payment to our mpesa till number this shall be published.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n', 2);
+	END IF;
+
+	IF NOT EXISTS (SELECT 1 FROM template WHERE staticName='published') THEN
+		INSERT INTO template (name, staticName, subject, body, paramsCount)
+		VALUES ('Published', 'published', 'Published', 'Dear $1,\n\nThank you for for using the Respect Obituary service.\nWe would like to notify you the Obituary $2 has been published.\nWe regret any delays in reply during non-working hours.\nServing you is our top priority.\n\nThank You.\n\n\n\nRegards,\nGreat Focus\n\n\n\n', 2);
+	END IF;
 END $$;
