@@ -102,39 +102,3 @@ func (t *Tasks) MoveOutCompleteQueue() {
 	}
 	log.Println("Scheduler_MoveOutCompleteQueue succeded")
 }
-
-/**
-Running database script is important for the following
-1. To archive archiving of data in the tables, we create tables every month
-2. This creates new tables for the new month and reduce the database load to query
-3. We have also split the tables into staging, queue, failed and done to avoid database deadlocks
-	- staging: new messages from the API go in here. This reduces deadlock in jobs since http bulk messages can cause performance isssues
-	- queue: messages are moved here as current messages being sent. This helps to isolate process
-	- failed: all failed messages go in here, this helps to wipe and reduce the queue
-	- complete: all successful messages are isolated here, this helps with reports isolation
-4. This breadown structure also helps with generating a proper dashboard for messages and reporting
-**/
-
-// RunDatabaseScripts intiates running database scripts
-func (t *Tasks) RunDatabaseScripts() {
-	log.Println("Scheduler_RunDatabaseScripts started")
-	if t.config.Database.Master.ExecuteSchema {
-		t.db.Master.ExecuteSchema(t.db.Master.Conn)
-	}
-	if t.config.Database.Slave.ExecuteSchema {
-		t.db.Slave.ExecuteSchema(t.db.Slave.Conn)
-	}
-	log.Println("Scheduler_RunDatabaseScripts ended")
-}
-
-// RebuildIndexes make changes to indexes
-func (t *Tasks) RebuildIndexes() {
-	log.Println("Scheduler_RebuildIndexes started")
-	if t.config.Database.Master.ExecuteSchema {
-		t.db.Master.RebuildIndexes(t.db.Master.Conn, "gf_notify")
-	}
-	if t.config.Database.Slave.ExecuteSchema {
-		t.db.Slave.RebuildIndexes(t.db.Slave.Conn, "gf_notify")
-	}
-	log.Println("Scheduler_RebuildIndexes ended")
-}

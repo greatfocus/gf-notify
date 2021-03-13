@@ -9,7 +9,7 @@ import (
 
 	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
-	"github.com/greatfocus/gf-frame/responses"
+	"github.com/greatfocus/gf-frame/response"
 	"github.com/greatfocus/gf-notify/models"
 	"github.com/greatfocus/gf-notify/repositories"
 )
@@ -32,7 +32,7 @@ func (m *MessageBulkController) Handler(w http.ResponseWriter, r *http.Request) 
 		m.addMessage(w, r)
 	default:
 		err := errors.New("Invalid Request")
-		responses.Error(w, http.StatusNotFound, err)
+		response.Error(w, http.StatusNotFound, err)
 		return
 	}
 }
@@ -43,7 +43,7 @@ func (m *MessageBulkController) addMessage(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusBadRequest, derr)
+		response.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 	messages := []models.Message{}
@@ -51,7 +51,7 @@ func (m *MessageBulkController) addMessage(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusBadRequest, derr)
+		response.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 
@@ -59,7 +59,7 @@ func (m *MessageBulkController) addMessage(w http.ResponseWriter, r *http.Reques
 	if len(messages) > 100 {
 		err := errors.New("Maximum payload reached")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, err)
+		response.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 
@@ -75,7 +75,7 @@ func Validate(w http.ResponseWriter, messages []models.Message) {
 		err := messages[i].Validate("new")
 		if err != nil {
 			log.Printf("Error: %v\n", err)
-			responses.Error(w, http.StatusUnprocessableEntity, err)
+			response.Error(w, http.StatusUnprocessableEntity, err)
 			return
 		}
 	}
@@ -98,6 +98,6 @@ func BulkInsert(w http.ResponseWriter, r *http.Request, repo *repositories.Messa
 		messages[i].Operation = "success"
 		messages[i].ID = result.ID
 	}
-	responses.Success(w, http.StatusOK, messages)
+	response.Success(w, http.StatusOK, messages)
 	return
 }

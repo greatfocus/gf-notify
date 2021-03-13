@@ -8,7 +8,7 @@ import (
 
 	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
-	"github.com/greatfocus/gf-frame/responses"
+	"github.com/greatfocus/gf-frame/response"
 	"github.com/greatfocus/gf-notify/models"
 	"github.com/greatfocus/gf-notify/repositories"
 )
@@ -31,7 +31,7 @@ func (d *ReportController) Handler(w http.ResponseWriter, r *http.Request) {
 		d.getReport(w, r)
 	default:
 		err := errors.New("Invalid Request")
-		responses.Error(w, http.StatusNotFound, err)
+		response.Error(w, http.StatusNotFound, err)
 		return
 	}
 }
@@ -48,7 +48,7 @@ func (d *ReportController) getReport(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			derr := errors.New("Invalid parameter")
 			log.Printf("Error: %v\n", err)
-			responses.Error(w, http.StatusBadRequest, derr)
+			response.Error(w, http.StatusBadRequest, derr)
 			return
 		}
 
@@ -56,7 +56,7 @@ func (d *ReportController) getReport(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			derr := errors.New("Invalid parameter")
 			log.Printf("Error: %v\n", err)
-			responses.Error(w, http.StatusBadRequest, derr)
+			response.Error(w, http.StatusBadRequest, derr)
 			return
 		}
 
@@ -64,7 +64,7 @@ func (d *ReportController) getReport(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			derr := errors.New("Invalid parameter")
 			log.Printf("Error: %v\n", err)
-			responses.Error(w, http.StatusBadRequest, derr)
+			response.Error(w, http.StatusBadRequest, derr)
 			return
 		}
 
@@ -72,21 +72,21 @@ func (d *ReportController) getReport(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			derr := errors.New("Invalid parameter")
 			log.Printf("Error: %v\n", err)
-			responses.Error(w, http.StatusBadRequest, derr)
+			response.Error(w, http.StatusBadRequest, derr)
 			return
 		}
 
 		messages := []models.Message{}
 		messages, err = d.messageRepository.ReportMessages(tableStr, channel, year, month, page)
 		if err != nil {
-			responses.Error(w, http.StatusUnprocessableEntity, err)
+			response.Error(w, http.StatusUnprocessableEntity, err)
 			return
 		}
-		responses.Success(w, http.StatusOK, messages)
+		response.Success(w, http.StatusOK, messages)
 		return
 	}
 
 	derr := errors.New("Invalid parameter")
-	responses.Error(w, http.StatusBadRequest, derr)
+	response.Error(w, http.StatusBadRequest, derr)
 	return
 }

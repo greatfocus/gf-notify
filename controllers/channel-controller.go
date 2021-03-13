@@ -9,7 +9,7 @@ import (
 
 	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
-	"github.com/greatfocus/gf-frame/responses"
+	"github.com/greatfocus/gf-frame/response"
 	"github.com/greatfocus/gf-notify/models"
 	"github.com/greatfocus/gf-notify/repositories"
 )
@@ -34,7 +34,7 @@ func (c *ChannelController) Handler(w http.ResponseWriter, r *http.Request) {
 		c.updateChannel(w, r)
 	default:
 		err := errors.New("Invalid Request")
-		responses.Error(w, http.StatusNotFound, err)
+		response.Error(w, http.StatusNotFound, err)
 		return
 	}
 }
@@ -45,7 +45,7 @@ func (c *ChannelController) updateChannel(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusBadRequest, derr)
+		response.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 	channel := models.Channel{}
@@ -53,7 +53,7 @@ func (c *ChannelController) updateChannel(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusBadRequest, derr)
+		response.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 
@@ -61,7 +61,7 @@ func (c *ChannelController) updateChannel(w http.ResponseWriter, r *http.Request
 	err = channel.ValidateChannel("update")
 	if err != nil {
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, err)
+		response.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 
@@ -69,11 +69,11 @@ func (c *ChannelController) updateChannel(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		derr := errors.New("unexpected error occurred")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		response.Error(w, http.StatusUnprocessableEntity, derr)
 		return
 	}
 
-	responses.Success(w, http.StatusOK, channel)
+	response.Success(w, http.StatusOK, channel)
 	return
 }
 
@@ -82,9 +82,9 @@ func (c *ChannelController) getChannels(w http.ResponseWriter, r *http.Request) 
 	channels := []models.Channel{}
 	channels, err := c.channelRepository.GetChannels()
 	if err != nil {
-		responses.Error(w, http.StatusUnprocessableEntity, err)
+		response.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
-	responses.Success(w, http.StatusOK, channels)
+	response.Success(w, http.StatusOK, channels)
 	return
 }

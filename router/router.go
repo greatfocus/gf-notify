@@ -5,25 +5,19 @@ import (
 	"net/http"
 
 	"github.com/greatfocus/gf-frame/server"
-
-	"github.com/greatfocus/gf-frame/middlewares"
 	"github.com/greatfocus/gf-notify/controllers"
 )
 
-// Router is exported and used in main.go
-func Router(s *server.Server) *http.ServeMux {
-	// create new router
+// LoadRouter is exported and used in main.go
+func LoadRouter(s *server.MetaData) *http.ServeMux {
 	mux := http.NewServeMux()
-
-	// routes
-	notifyRoute(mux, s)
-
+	loadHandlers(mux, s)
 	log.Println("Created routes with controllers")
 	return mux
 }
 
 // notifyRoute created all routes and handlers relating to controller
-func notifyRoute(mux *http.ServeMux, s *server.Server) {
+func loadHandlers(mux *http.ServeMux, s *server.MetaData) {
 	// Initialize controller
 	messageController := controllers.MessageController{}
 	messageController.Init(s.DB, s.Cache)
@@ -50,12 +44,12 @@ func notifyRoute(mux *http.ServeMux, s *server.Server) {
 	reportController.Init(s.DB, s.Cache)
 
 	// Initialize routes
-	mux.HandleFunc("/notify/channel", middlewares.SetMiddlewareClient(channelController.Handler, s))
-	mux.HandleFunc("/notify/message", middlewares.SetMiddlewareClient(messageController.Handler, s))
-	mux.HandleFunc("/notify/message/bulk", middlewares.SetMiddlewareClient(messageBulkController.Handler, s))
-	mux.HandleFunc("/notify/dashboard", middlewares.SetMiddlewareClient(dashboardController.Handler, s))
-	mux.HandleFunc("/notify/template", middlewares.SetMiddlewareClient(templateController.Handler, s))
-	mux.HandleFunc("/notify/template-message", middlewares.SetMiddlewareClient(templateMessageController.Handler, s))
-	mux.HandleFunc("/notify/template-message/bulk", middlewares.SetMiddlewareClient(templateMessageBulkController.Handler, s))
-	mux.HandleFunc("/notify/report", middlewares.SetMiddlewareClient(reportController.Handler, s))
+	mux.HandleFunc("/notify/channel", server.SetMiddlewareClient(channelController.Handler, s))
+	mux.HandleFunc("/notify/message", server.SetMiddlewareClient(messageController.Handler, s))
+	mux.HandleFunc("/notify/message/bulk", server.SetMiddlewareClient(messageBulkController.Handler, s))
+	mux.HandleFunc("/notify/dashboard", server.SetMiddlewareClient(dashboardController.Handler, s))
+	mux.HandleFunc("/notify/template", server.SetMiddlewareClient(templateController.Handler, s))
+	mux.HandleFunc("/notify/template-message", server.SetMiddlewareClient(templateMessageController.Handler, s))
+	mux.HandleFunc("/notify/template-message/bulk", server.SetMiddlewareClient(templateMessageBulkController.Handler, s))
+	mux.HandleFunc("/notify/report", server.SetMiddlewareClient(reportController.Handler, s))
 }

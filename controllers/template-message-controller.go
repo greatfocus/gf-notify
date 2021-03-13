@@ -11,7 +11,7 @@ import (
 
 	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
-	"github.com/greatfocus/gf-frame/responses"
+	"github.com/greatfocus/gf-frame/response"
 	"github.com/greatfocus/gf-notify/models"
 	"github.com/greatfocus/gf-notify/repositories"
 )
@@ -37,7 +37,7 @@ func (t *TemplateMessageController) Handler(w http.ResponseWriter, r *http.Reque
 		t.add(w, r)
 	default:
 		err := errors.New("Invalid Request")
-		responses.Error(w, http.StatusNotFound, err)
+		response.Error(w, http.StatusNotFound, err)
 		return
 	}
 }
@@ -48,7 +48,7 @@ func (t *TemplateMessageController) add(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusBadGateway, derr)
+		response.Error(w, http.StatusBadGateway, derr)
 		return
 	}
 	message := models.Message{}
@@ -56,14 +56,14 @@ func (t *TemplateMessageController) add(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		derr := errors.New("invalid payload request")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusBadGateway, derr)
+		response.Error(w, http.StatusBadGateway, derr)
 		return
 	}
 	message.PrepareInput(r)
 	err = message.Validate("new-template")
 	if err != nil {
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, err)
+		response.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 
@@ -71,20 +71,20 @@ func (t *TemplateMessageController) add(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		derr := errors.New("unexpected error occurred")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		response.Error(w, http.StatusUnprocessableEntity, derr)
 		return
 	}
 	createdMessage, err := t.messageRepository.Add("staging", newMessage)
 	if err != nil {
 		derr := errors.New("unexpected error occurred")
 		log.Printf("Error: %v\n", err)
-		responses.Error(w, http.StatusUnprocessableEntity, derr)
+		response.Error(w, http.StatusUnprocessableEntity, derr)
 		return
 	}
 
 	result := models.Message{}
 	result.PrepareOutput(createdMessage)
-	responses.Success(w, http.StatusOK, result)
+	response.Success(w, http.StatusOK, result)
 	return
 }
 
