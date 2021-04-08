@@ -39,7 +39,7 @@ func (repo *DashboardRepository) GetDashboard(year int64, month int64) (models.D
 	from dashboard 
 	WHERE year = $1 AND month = $2;
 	`
-	row := repo.db.Slave.Conn.QueryRow(query, year, month)
+	row := repo.db.Select(query, year, month)
 	err := row.Scan(&dashboard.ID, &dashboard.Request, &dashboard.Staging, &dashboard.Queue, &dashboard.Complete, &dashboard.Failed)
 	if err != nil {
 		return models.Dashboard{}, err

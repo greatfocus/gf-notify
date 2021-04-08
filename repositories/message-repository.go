@@ -100,7 +100,7 @@ func messageMapper(rows *sql.Rows) ([]models.Message, error) {
 // insert adds new  database record
 func insert(params *QueryParam) (int64, error) {
 	var id int64
-	err := params.Repo.db.Master.Conn.QueryRow(params.Statement, params.Args...).Scan(&id)
+	err := params.Repo.db.Select(params.Statement, params.Args...).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -109,7 +109,7 @@ func insert(params *QueryParam) (int64, error) {
 
 // update makes changes to database record
 func update(params *QueryParam, rowCount int64) (bool, error) {
-	res, err := params.Repo.db.Master.Conn.Exec(params.Statement, params.Args...)
+	res, err := params.Repo.db.Update(params.Statement, params.Args...)
 	if err != nil {
 		return false, err
 	}
@@ -129,7 +129,7 @@ func update(params *QueryParam, rowCount int64) (bool, error) {
 
 // queryMessages executes to get messages
 func query(params *QueryParam) ([]models.Message, error) {
-	rows, err := params.Repo.db.Master.Conn.Query(params.Statement, params.Args...)
+	rows, err := params.Repo.db.Query(params.Statement, params.Args...)
 	if err != nil {
 		return nil, err
 	}
@@ -323,7 +323,7 @@ func (repo *MessageRepository) MoveStagedToQueue() (bool, error) {
 	`
 
 	query := replaceTimeHolder(statement)
-	_, err := repo.db.Master.Conn.Exec(query)
+	_, err := repo.db.Update(query)
 	if err != nil {
 		return false, err
 	}
@@ -340,7 +340,7 @@ func (repo *MessageRepository) ReQueueProcessingEmails() (bool, error) {
 		WHERE statusid=3 and EXTRACT(MINUTE FROM updatedOn) > 10;
 	`
 	query := replaceTimeHolder(statement)
-	_, err := repo.db.Master.Conn.Exec(query)
+	_, err := repo.db.Update(query)
 	if err != nil {
 		return false, err
 	}
@@ -380,7 +380,7 @@ func (repo *MessageRepository) MoveOutFailedQueue() (bool, error) {
 	`
 
 	query := replaceTimeHolder(statement)
-	_, err := repo.db.Master.Conn.Exec(query)
+	_, err := repo.db.Update(query)
 	if err != nil {
 		return false, err
 	}
@@ -420,7 +420,7 @@ func (repo *MessageRepository) MoveOutCompleteQueue() (bool, error) {
 	`
 
 	query := replaceTimeHolder(statement)
-	_, err := repo.db.Master.Conn.Exec(query)
+	_, err := repo.db.Update(query)
 	if err != nil {
 		return false, err
 	}

@@ -12,7 +12,14 @@
             "program": "${workspaceRoot}/main.go",
             "env": {},
             "args": [
-                "dev"
+                "dev",
+                "/etc/ssl/respect/gf.crt",
+                "/etc/ssl/respect/gf-server.crt",
+                "/etc/ssl/respect/gf-server.key",
+                "/etc/ssl/respect/gf-client.crt",
+                "/etc/ssl/respect/gf-client.key",
+                "respect",
+                "elders@2020"
             ]
         }
     ]

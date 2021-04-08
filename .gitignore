@@ -1,3 +1,9 @@
-dev.json
-gf-notify
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.json
+gf-*
 __debug_bin

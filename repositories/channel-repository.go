@@ -34,7 +34,7 @@ func (repo *ChannelRepository) UpdateChannel(channel models.Channel) error {
 		enabled=$3
     WHERE id=$1
   	`
-	res, err := repo.db.Master.Conn.Exec(query, channel.ID, channel.Priority, channel.Enabled)
+	res, err := repo.db.Update(query, channel.ID, channel.Priority, channel.Enabled)
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func (repo *ChannelRepository) GetChannels() ([]models.Channel, error) {
 	from channel 
 	order BY id DESC
 	`
-	rows, err := repo.db.Slave.Conn.Query(query)
+	rows, err := repo.db.Query(query)
 	if err != nil {
 		return nil, err
 	}

@@ -35,7 +35,7 @@ func (repo *TemplateRepository) AddTemplate(template models.Template) (models.Te
     returning id
   `
 	var id int64
-	err := repo.db.Slave.Conn.QueryRow(statement, template.Name, template.StaticName, template.Subject, template.Body, template.ParamsCount).Scan(&id)
+	err := repo.db.Select(statement, template.Name, template.StaticName, template.Subject, template.Body, template.ParamsCount).Scan(&id)
 	if err != nil {
 		log.Printf("Error: %v\n", err)
 		return template, err
@@ -58,7 +58,7 @@ func (repo *TemplateRepository) UpdateTemplate(template models.Template) error {
 		enabled=$6
     where id=$1 and deleted=false
   	`
-	res, err := repo.db.Slave.Conn.Exec(query, template.ID, template.Name, template.Subject, template.Body, template.ParamsCount, template.Enabled)
+	res, err := repo.db.Update(query, template.ID, template.Name, template.Subject, template.Body, template.ParamsCount, template.Enabled)
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,7 @@ func (repo *TemplateRepository) GetTemplates(page int64) ([]models.Template, err
 	where deleted = false
 	order by id DESC limit 500 OFFSET $1-1
 	`
-	rows, err := repo.db.Slave.Conn.Query(query, page)
+	rows, err := repo.db.Query(query, page)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func (repo *TemplateRepository) GetTemplate(id int64) (models.Template, error) {
 	from template 
 	where id=$1 and deleted = false
 	`
-	row := repo.db.Slave.Conn.QueryRow(query, id)
+	row := repo.db.Select(query, id)
 	err := row.Scan(&template.ID, &template.Name, &template.StaticName, &template.Subject, &template.Body, &template.ParamsCount, &template.CreatedOn, &template.UpdatedOn, &template.Enabled)
 	if err != nil {
 		return template, err
@@ -143,7 +143,7 @@ func (repo *TemplateRepository) DeleteTemplate(id int64) error {
 		deleted=true
     where id=$1
   	`
-	res, err := repo.db.Slave.Conn.Exec(query, id)
+	res, err := repo.db.Update(query, id)
 	if err != nil {
 		return err
 	}
