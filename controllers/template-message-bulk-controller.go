@@ -60,7 +60,7 @@ func (m *TemplateMessageBulkController) addMessage(w http.ResponseWriter, r *htt
 
 	// maximum bulk insert is 100
 	if len(messages) > 100 {
-		err := errors.New("maximum payload reached")
+		err = errors.New("maximum payload reached")
 		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusUnprocessableEntity, err)
 		return

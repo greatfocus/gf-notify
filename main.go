@@ -12,8 +12,7 @@ import (
 // Entry point to the solution
 func main() {
 	// Get arguments
-	var env string
-	env = os.Args[1]
+	var env = os.Args[1]
 	if env == "" {
 		panic("pass the environment")
 	}

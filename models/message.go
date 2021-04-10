@@ -60,7 +60,7 @@ func (m *Message) Validate(action string) error {
 			return errors.New("required Content")
 		}
 		if !validate.Email(m.Recipient) {
-			return errors.New("Invalid email address")
+			return errors.New("invalid email address")
 		}
 		return nil
 
@@ -75,7 +75,7 @@ func (m *Message) Validate(action string) error {
 			return errors.New("required Recipient")
 		}
 		if !validate.Email(m.Recipient) {
-			return errors.New("Invalid email address")
+			return errors.New("invalid email address")
 		}
 		return nil
 	default:
