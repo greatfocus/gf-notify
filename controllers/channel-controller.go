@@ -33,7 +33,7 @@ func (c *ChannelController) Handler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPut:
 		c.updateChannel(w, r)
 	default:
-		err := errors.New("Invalid Request")
+		err := errors.New("invalid Request")
 		response.Error(w, http.StatusNotFound, err)
 		return
 	}
@@ -44,7 +44,7 @@ func (c *ChannelController) updateChannel(w http.ResponseWriter, r *http.Request
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		derr := errors.New("invalid payload request")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusBadRequest, derr)
 		return
 	}
@@ -52,7 +52,7 @@ func (c *ChannelController) updateChannel(w http.ResponseWriter, r *http.Request
 	err = json.Unmarshal(body, &channel)
 	if err != nil {
 		derr := errors.New("invalid payload request")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusBadRequest, derr)
 		return
 	}
@@ -60,7 +60,7 @@ func (c *ChannelController) updateChannel(w http.ResponseWriter, r *http.Request
 	channel.PrepareChannel(r)
 	err = channel.ValidateChannel("update")
 	if err != nil {
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
@@ -68,23 +68,20 @@ func (c *ChannelController) updateChannel(w http.ResponseWriter, r *http.Request
 	err = c.channelRepository.UpdateChannel(channel)
 	if err != nil {
 		derr := errors.New("unexpected error occurred")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusUnprocessableEntity, derr)
 		return
 	}
 
 	response.Success(w, http.StatusOK, channel)
-	return
 }
 
 // requestMessage method creates a message request
 func (c *ChannelController) getChannels(w http.ResponseWriter, r *http.Request) {
-	channels := []models.Channel{}
 	channels, err := c.channelRepository.GetChannels()
 	if err != nil {
 		response.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 	response.Success(w, http.StatusOK, channels)
-	return
 }

@@ -30,7 +30,7 @@ func (d *DashboardController) Handler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		d.getDashboard(w, r)
 	default:
-		err := errors.New("Invalid Request")
+		err := errors.New("invalid Request")
 		response.Error(w, http.StatusNotFound, err)
 		return
 	}
@@ -43,7 +43,7 @@ func (d *DashboardController) getDashboard(w http.ResponseWriter, r *http.Reques
 	if len(yearStr) != 0 && len(monthStr) != 0 {
 		year, err := strconv.ParseInt(yearStr, 10, 64)
 		if err != nil {
-			derr := errors.New("Invalid parameter")
+			derr := errors.New("invalid parameter")
 			log.Printf("Error: %v\n", err)
 			response.Error(w, http.StatusBadRequest, derr)
 			return
@@ -51,7 +51,7 @@ func (d *DashboardController) getDashboard(w http.ResponseWriter, r *http.Reques
 
 		month, err := strconv.ParseInt(monthStr, 10, 64)
 		if err != nil {
-			derr := errors.New("Invalid parameter")
+			derr := errors.New("invalid parameter")
 			log.Printf("Error: %v\n", err)
 			response.Error(w, http.StatusBadRequest, derr)
 			return
@@ -67,7 +67,6 @@ func (d *DashboardController) getDashboard(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	derr := errors.New("Invalid parameter")
+	derr := errors.New("invalid parameter")
 	response.Error(w, http.StatusBadRequest, derr)
-	return
 }

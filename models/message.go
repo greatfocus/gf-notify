@@ -48,16 +48,16 @@ func (m *Message) Validate(action string) error {
 	switch strings.ToLower(action) {
 	case "new":
 		if m.ChannelID == 0 {
-			return errors.New("Required Channel")
+			return errors.New("required Channel")
 		}
 		if m.Recipient == "" {
-			return errors.New("Required Recipient")
+			return errors.New("required Recipient")
 		}
 		if m.Subject == "" {
-			return errors.New("Required Subject")
+			return errors.New("required Subject")
 		}
 		if m.Content == "" {
-			return errors.New("Required Content")
+			return errors.New("required Content")
 		}
 		if !validate.Email(m.Recipient) {
 			return errors.New("Invalid email address")
@@ -66,13 +66,13 @@ func (m *Message) Validate(action string) error {
 
 	case "new-template":
 		if m.TemplateID == 0 {
-			return errors.New("Required Template")
+			return errors.New("required Template")
 		}
 		if m.ChannelID == 0 {
-			return errors.New("Required Channel")
+			return errors.New("required Channel")
 		}
 		if m.Recipient == "" {
-			return errors.New("Required Recipient")
+			return errors.New("required Recipient")
 		}
 		if !validate.Email(m.Recipient) {
 			return errors.New("Invalid email address")

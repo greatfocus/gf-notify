@@ -29,10 +29,10 @@ func (c *Channel) ValidateChannel(action string) error {
 	switch strings.ToLower(action) {
 	case "update":
 		if c.ID == 0 {
-			return errors.New("Required ID")
+			return errors.New("required ID")
 		}
 		if c.Priority == 0 {
-			return errors.New("Required Priority")
+			return errors.New("required Priority")
 		}
 		return nil
 	default:

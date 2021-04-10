@@ -38,7 +38,7 @@ func (t *TemplateController) Handler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodDelete:
 		t.delete(w, r)
 	default:
-		err := errors.New("Invalid Request")
+		err := errors.New("invalid Request")
 		response.Error(w, http.StatusNotFound, err)
 		return
 	}
@@ -50,8 +50,11 @@ func (t *TemplateController) get(w http.ResponseWriter, r *http.Request) {
 
 	if len(pageStr) != 0 {
 		page, err := strconv.ParseInt(pageStr, 10, 64)
-		templates := []models.Template{}
-		templates, err = t.templateRepository.GetTemplates(page)
+		if err != nil {
+			response.Error(w, http.StatusUnprocessableEntity, err)
+			return
+		}
+		templates, err := t.templateRepository.GetTemplates(page)
 		if err != nil {
 			response.Error(w, http.StatusUnprocessableEntity, err)
 			return
@@ -60,9 +63,8 @@ func (t *TemplateController) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	derr := errors.New("Invalid parameter")
+	derr := errors.New("invalid parameter")
 	response.Error(w, http.StatusBadRequest, derr)
-	return
 }
 
 // add method adds new template
@@ -70,7 +72,7 @@ func (t *TemplateController) add(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		derr := errors.New("invalid payload request")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusBadGateway, derr)
 		return
 	}
@@ -78,14 +80,14 @@ func (t *TemplateController) add(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, &template)
 	if err != nil {
 		derr := errors.New("invalid payload request")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusBadGateway, derr)
 		return
 	}
 	template.PrepareTempate()
 	err = template.ValidateTemplate("add")
 	if err != nil {
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
@@ -93,7 +95,7 @@ func (t *TemplateController) add(w http.ResponseWriter, r *http.Request) {
 	createdTemplate, err := t.templateRepository.AddTemplate(template)
 	if err != nil {
 		derr := errors.New("unexpected error occurred")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusUnprocessableEntity, derr)
 		return
 	}
@@ -101,7 +103,6 @@ func (t *TemplateController) add(w http.ResponseWriter, r *http.Request) {
 	result := models.Template{}
 	result.PrepareTemplateOutput(createdTemplate)
 	response.Success(w, http.StatusOK, result)
-	return
 }
 
 // update method adds new template
@@ -109,7 +110,7 @@ func (t *TemplateController) update(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		derr := errors.New("invalid payload request")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusBadGateway, derr)
 		return
 	}
@@ -117,14 +118,14 @@ func (t *TemplateController) update(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, &template)
 	if err != nil {
 		derr := errors.New("invalid payload request")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusBadGateway, derr)
 		return
 	}
 
 	err = template.ValidateTemplate("edit")
 	if err != nil {
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
@@ -132,7 +133,7 @@ func (t *TemplateController) update(w http.ResponseWriter, r *http.Request) {
 	err = t.templateRepository.UpdateTemplate(template)
 	if err != nil {
 		derr := errors.New("unexpected error occurred")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusUnprocessableEntity, derr)
 		return
 	}
@@ -140,7 +141,6 @@ func (t *TemplateController) update(w http.ResponseWriter, r *http.Request) {
 	result := models.Template{}
 	result.PrepareTemplateOutput(template)
 	response.Success(w, http.StatusOK, result)
-	return
 }
 
 // requestMessage method delete templates
@@ -149,6 +149,12 @@ func (t *TemplateController) delete(w http.ResponseWriter, r *http.Request) {
 
 	if len(idStr) != 0 {
 		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil {
+			derr := errors.New("invalid payload request")
+			log.Printf("error: %v\n", err)
+			response.Error(w, http.StatusBadGateway, derr)
+			return
+		}
 		err = t.templateRepository.DeleteTemplate(id)
 		if err != nil {
 			response.Error(w, http.StatusUnprocessableEntity, err)
@@ -158,7 +164,6 @@ func (t *TemplateController) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	derr := errors.New("Invalid parameter")
+	derr := errors.New("invalid parameter")
 	response.Error(w, http.StatusBadRequest, derr)
-	return
 }

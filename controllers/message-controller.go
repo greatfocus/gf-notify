@@ -31,7 +31,7 @@ func (c *MessageController) Handler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		c.add(w, r)
 	default:
-		err := errors.New("Invalid Request")
+		err := errors.New("invalid Request")
 		response.Error(w, http.StatusNotFound, err)
 		return
 	}
@@ -42,7 +42,7 @@ func (c *MessageController) add(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		derr := errors.New("invalid payload request")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusBadGateway, derr)
 		return
 	}
@@ -50,14 +50,14 @@ func (c *MessageController) add(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, &message)
 	if err != nil {
 		derr := errors.New("invalid payload request")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusBadGateway, derr)
 		return
 	}
 	message.PrepareInput(r)
 	err = message.Validate("new")
 	if err != nil {
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
@@ -65,7 +65,7 @@ func (c *MessageController) add(w http.ResponseWriter, r *http.Request) {
 	createdMessage, err := c.messageRepository.Add("staging", message)
 	if err != nil {
 		derr := errors.New("unexpected error occurred")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusUnprocessableEntity, derr)
 		return
 	}
@@ -73,5 +73,4 @@ func (c *MessageController) add(w http.ResponseWriter, r *http.Request) {
 	result := models.Message{}
 	result.PrepareOutput(createdMessage)
 	response.Success(w, http.StatusOK, result)
-	return
 }

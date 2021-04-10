@@ -34,7 +34,7 @@ func (m *TemplateMessageBulkController) Handler(w http.ResponseWriter, r *http.R
 	case http.MethodPost:
 		m.addMessage(w, r)
 	default:
-		err := errors.New("Invalid Request")
+		err := errors.New("invalid Request")
 		response.Error(w, http.StatusNotFound, err)
 		return
 	}
@@ -45,7 +45,7 @@ func (m *TemplateMessageBulkController) addMessage(w http.ResponseWriter, r *htt
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		derr := errors.New("invalid payload request")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusBadGateway, derr)
 		return
 	}
@@ -53,15 +53,15 @@ func (m *TemplateMessageBulkController) addMessage(w http.ResponseWriter, r *htt
 	err = json.Unmarshal(body, &messages)
 	if err != nil {
 		derr := errors.New("invalid payload request")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusBadGateway, derr)
 		return
 	}
 
 	// maximum bulk insert is 100
 	if len(messages) > 100 {
-		err := errors.New("Maximum payload reached")
-		log.Printf("Error: %v\n", err)
+		err := errors.New("maximum payload reached")
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
@@ -69,7 +69,7 @@ func (m *TemplateMessageBulkController) addMessage(w http.ResponseWriter, r *htt
 	msg, err := PrepareTemplateInput(m.messageRepository, m.templateRepository, messages)
 	if err != nil {
 		derr := errors.New("invalid payload request")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusUnprocessableEntity, derr)
 		return
 	}
@@ -77,7 +77,6 @@ func (m *TemplateMessageBulkController) addMessage(w http.ResponseWriter, r *htt
 	Validate(w, msg)
 	PrepareInput(w, r, msg)
 	BulkInsert(w, r, m.messageRepository, msg)
-	return
 }
 
 // PrepareTemplateInput bulk messages

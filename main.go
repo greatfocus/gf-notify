@@ -15,7 +15,7 @@ func main() {
 	var env string
 	env = os.Args[1]
 	if env == "" {
-		panic("Pass the environment")
+		panic("pass the environment")
 	}
 
 	// Load params

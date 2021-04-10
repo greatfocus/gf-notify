@@ -9,7 +9,6 @@ import (
 	"github.com/greatfocus/gf-frame/cache"
 	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-frame/response"
-	"github.com/greatfocus/gf-notify/models"
 	"github.com/greatfocus/gf-notify/repositories"
 )
 
@@ -30,7 +29,7 @@ func (d *ReportController) Handler(w http.ResponseWriter, r *http.Request) {
 	case http.MethodGet:
 		d.getReport(w, r)
 	default:
-		err := errors.New("Invalid Request")
+		err := errors.New("invalid Request")
 		response.Error(w, http.StatusNotFound, err)
 		return
 	}
@@ -46,38 +45,37 @@ func (d *ReportController) getReport(w http.ResponseWriter, r *http.Request) {
 	if len(tableStr) != 0 && len(channelStr) != 0 && len(yearStr) != 0 && len(monthStr) != 0 && len(pageStr) != 0 {
 		channel, err := strconv.ParseInt(channelStr, 10, 64)
 		if err != nil {
-			derr := errors.New("Invalid parameter")
-			log.Printf("Error: %v\n", err)
+			derr := errors.New("invalid parameter")
+			log.Printf("error: %v\n", err)
 			response.Error(w, http.StatusBadRequest, derr)
 			return
 		}
 
 		year, err := strconv.ParseInt(yearStr, 10, 64)
 		if err != nil {
-			derr := errors.New("Invalid parameter")
-			log.Printf("Error: %v\n", err)
+			derr := errors.New("invalid parameter")
+			log.Printf("error: %v\n", err)
 			response.Error(w, http.StatusBadRequest, derr)
 			return
 		}
 
 		month, err := strconv.ParseInt(monthStr, 10, 64)
 		if err != nil {
-			derr := errors.New("Invalid parameter")
-			log.Printf("Error: %v\n", err)
+			derr := errors.New("invalid parameter")
+			log.Printf("error: %v\n", err)
 			response.Error(w, http.StatusBadRequest, derr)
 			return
 		}
 
 		page, err := strconv.ParseInt(pageStr, 10, 64)
 		if err != nil {
-			derr := errors.New("Invalid parameter")
-			log.Printf("Error: %v\n", err)
+			derr := errors.New("invalid parameter")
+			log.Printf("error: %v\n", err)
 			response.Error(w, http.StatusBadRequest, derr)
 			return
 		}
 
-		messages := []models.Message{}
-		messages, err = d.messageRepository.ReportMessages(tableStr, channel, year, month, page)
+		messages, err := d.messageRepository.ReportMessages(tableStr, channel, year, month, page)
 		if err != nil {
 			response.Error(w, http.StatusUnprocessableEntity, err)
 			return
@@ -86,7 +84,6 @@ func (d *ReportController) getReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	derr := errors.New("Invalid parameter")
+	derr := errors.New("invalid parameter")
 	response.Error(w, http.StatusBadRequest, derr)
-	return
 }

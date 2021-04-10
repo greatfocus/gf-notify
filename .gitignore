@@ -5,5 +5,5 @@
 *.so
 *.dylib
 *.json
-gf-*
+gf-notify
 __debug_bin

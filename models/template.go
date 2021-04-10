@@ -31,44 +31,44 @@ func (t *Template) ValidateTemplate(action string) error {
 	switch strings.ToLower(action) {
 	case "edit":
 		if t.ID == 0 {
-			return errors.New("Required ID")
+			return errors.New("required ID")
 		}
 		if t.Name == "" {
-			return errors.New("Required Name")
+			return errors.New("required Name")
 		}
 		if t.StaticName == "" {
-			return errors.New("Required StaticName")
+			return errors.New("required StaticName")
 		}
 		if t.Subject == "" {
-			return errors.New("Required Subject")
+			return errors.New("required Subject")
 		}
 		if t.Body == "" {
-			return errors.New("Required Body")
+			return errors.New("required Body")
 		}
 		if int64(strings.Count(t.Body, "$")) != t.ParamsCount {
-			return errors.New("Parameters required don't match")
+			return errors.New("parameters required don't match")
 		}
 		return nil
 
 	case "add":
 		if t.Name == "" {
-			return errors.New("Required Name")
+			return errors.New("required Name")
 		}
 		if t.StaticName == "" {
-			return errors.New("Required StaticName")
+			return errors.New("required StaticName")
 		}
 		if t.Subject == "" {
-			return errors.New("Required Subject")
+			return errors.New("required Subject")
 		}
 		if t.Body == "" {
-			return errors.New("Required Body")
+			return errors.New("required Body")
 		}
 		if int64(strings.Count(t.Body, "$")) != t.ParamsCount {
-			return errors.New("Parameters required don't match")
+			return errors.New("parameters required don't match")
 		}
 		return nil
 	default:
-		return errors.New("Invalid validation operation")
+		return errors.New("invalid validation operation")
 	}
 }
 

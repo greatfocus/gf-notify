@@ -31,7 +31,7 @@ func (m *MessageBulkController) Handler(w http.ResponseWriter, r *http.Request) 
 	case http.MethodPost:
 		m.addMessage(w, r)
 	default:
-		err := errors.New("Invalid Request")
+		err := errors.New("invalid Request")
 		response.Error(w, http.StatusNotFound, err)
 		return
 	}
@@ -50,15 +50,15 @@ func (m *MessageBulkController) addMessage(w http.ResponseWriter, r *http.Reques
 	err = json.Unmarshal(body, &messages)
 	if err != nil {
 		derr := errors.New("invalid payload request")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusBadRequest, derr)
 		return
 	}
 
 	// maximum bulk insert is 100
 	if len(messages) > 100 {
-		err := errors.New("Maximum payload reached")
-		log.Printf("Error: %v\n", err)
+		err := errors.New("maximum payload reached")
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
@@ -66,7 +66,6 @@ func (m *MessageBulkController) addMessage(w http.ResponseWriter, r *http.Reques
 	Validate(w, messages)
 	PrepareInput(w, r, messages)
 	BulkInsert(w, r, m.messageRepository, messages)
-	return
 }
 
 // Validate bulk messages
@@ -74,7 +73,7 @@ func Validate(w http.ResponseWriter, messages []models.Message) {
 	for i := 0; i < len(messages); i++ {
 		err := messages[i].Validate("new")
 		if err != nil {
-			log.Printf("Error: %v\n", err)
+			log.Printf("error: %v\n", err)
 			response.Error(w, http.StatusUnprocessableEntity, err)
 			return
 		}
@@ -99,5 +98,4 @@ func BulkInsert(w http.ResponseWriter, r *http.Request, repo *repositories.Messa
 		messages[i].ID = result.ID
 	}
 	response.Success(w, http.StatusOK, messages)
-	return
 }

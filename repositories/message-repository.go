@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -18,7 +17,6 @@ import (
 type MessageRepository struct {
 	db    *database.Conn
 	cache *cache.Cache
-	ctx   context.Context
 }
 
 // QueryParam struct
@@ -120,7 +118,7 @@ func update(params *QueryParam, rowCount int64) (bool, error) {
 	}
 
 	if count != rowCount {
-		err = errors.New("Records updated more than the expected")
+		err = errors.New("records updated more than the expected")
 		return false, err
 	}
 

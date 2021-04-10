@@ -1,12 +1,12 @@
 [Unit]
-Description= Instance for sending emails and sms
+Description= GF Service for microservice Notification both email and SMS
 ConditionPathExists=/app/gf-notify/gf-notify
-After=network.target
+After=network.target gf-config.service
 
 [Service]
 Type=simple
-User=root
-Group=www-data
+User=respect
+Group=respect
 LimitNOFILE=1024
 
 Restart=on-failure

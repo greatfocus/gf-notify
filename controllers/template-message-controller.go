@@ -36,7 +36,7 @@ func (t *TemplateMessageController) Handler(w http.ResponseWriter, r *http.Reque
 	case http.MethodPost:
 		t.add(w, r)
 	default:
-		err := errors.New("Invalid Request")
+		err := errors.New("invalid Request")
 		response.Error(w, http.StatusNotFound, err)
 		return
 	}
@@ -47,7 +47,7 @@ func (t *TemplateMessageController) add(w http.ResponseWriter, r *http.Request) 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		derr := errors.New("invalid payload request")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusBadGateway, derr)
 		return
 	}
@@ -55,14 +55,14 @@ func (t *TemplateMessageController) add(w http.ResponseWriter, r *http.Request) 
 	err = json.Unmarshal(body, &message)
 	if err != nil {
 		derr := errors.New("invalid payload request")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusBadGateway, derr)
 		return
 	}
 	message.PrepareInput(r)
 	err = message.Validate("new-template")
 	if err != nil {
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusUnprocessableEntity, err)
 		return
 	}
@@ -70,14 +70,14 @@ func (t *TemplateMessageController) add(w http.ResponseWriter, r *http.Request) 
 	newMessage, err := createTemplateMessage(t.messageRepository, t.templateRepository, message)
 	if err != nil {
 		derr := errors.New("unexpected error occurred")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusUnprocessableEntity, derr)
 		return
 	}
 	createdMessage, err := t.messageRepository.Add("staging", newMessage)
 	if err != nil {
 		derr := errors.New("unexpected error occurred")
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		response.Error(w, http.StatusUnprocessableEntity, derr)
 		return
 	}
@@ -85,7 +85,6 @@ func (t *TemplateMessageController) add(w http.ResponseWriter, r *http.Request) 
 	result := models.Message{}
 	result.PrepareOutput(createdMessage)
 	response.Success(w, http.StatusOK, result)
-	return
 }
 
 func createTemplateMessage(messageRepo *repositories.MessageRepository, templateRepo *repositories.TemplateRepository, message models.Message) (models.Message, error) {
@@ -95,7 +94,7 @@ func createTemplateMessage(messageRepo *repositories.MessageRepository, template
 	}
 
 	if len(template.Name) < 1 {
-		return message, errors.New("Template does not exist")
+		return message, errors.New("template does not exist")
 	}
 
 	err = validateTemplate(message, template)
@@ -120,7 +119,7 @@ func getTemplate(id int64, repo *repositories.TemplateRepository) (models.Templa
 // validateTemplate checks if parameters are expected
 func validateTemplate(message models.Message, template models.Template) error {
 	if len(message.Params) != int(template.ParamsCount) {
-		return errors.New("Parameters required don't match")
+		return errors.New("parameters required don't match")
 	}
 
 	return nil

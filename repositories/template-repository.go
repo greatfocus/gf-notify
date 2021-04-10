@@ -37,7 +37,7 @@ func (repo *TemplateRepository) AddTemplate(template models.Template) (models.Te
 	var id int64
 	err := repo.db.Select(statement, template.Name, template.StaticName, template.Subject, template.Body, template.ParamsCount).Scan(&id)
 	if err != nil {
-		log.Printf("Error: %v\n", err)
+		log.Printf("error: %v\n", err)
 		return template, err
 	}
 	template.ID = id
