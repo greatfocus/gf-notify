@@ -131,7 +131,9 @@ func query(params *QueryParam) ([]models.Message, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	return messageMapper(rows)
 }
@@ -223,7 +225,7 @@ func (repo *MessageRepository) Add(table string, message models.Message) (models
 	}
 
 	message.ID = id
-	repo.updateStagingDashboard(1)
+	_ = repo.updateStagingDashboard(1)
 	return message, nil
 }
 

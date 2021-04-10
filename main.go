@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	frame "github.com/greatfocus/gf-frame"
@@ -23,11 +24,26 @@ func main() {
 	// background task
 	tasks := task.Tasks{}
 	tasks.Init(server.DB, server.Cache, server.Config)
-	server.Cron.Every(20).Second().Do(tasks.MoveStagedToQueue)
-	server.Cron.Every(10).Second().Do(tasks.ReQueueProcessingEmails) // in case there is panic error some queue may be stack in processing mode
-	server.Cron.Every(10).Second().Do(tasks.SendQueuedEmails)
-	server.Cron.Every(1).Minute().Do(tasks.MoveOutFailedQueue)
-	server.Cron.Every(1).Minute().Do(tasks.MoveOutCompleteQueue)
+	err := server.Cron.Every(20).Second().Do(tasks.MoveStagedToQueue)
+	if err != nil {
+		log.Fatalf("Cron Job failed: MoveStagedToQueue: %v", err)
+	}
+	err = server.Cron.Every(10).Second().Do(tasks.ReQueueProcessingEmails) // in case there is panic error some queue may be stack in processing mode
+	if err != nil {
+		log.Fatalf("Cron Job failed: ReQueueProcessingEmails: %v", err)
+	}
+	err = server.Cron.Every(10).Second().Do(tasks.SendQueuedEmails)
+	if err != nil {
+		log.Fatalf("Cron Job failed: SendQueuedEmails: %v", err)
+	}
+	err = server.Cron.Every(1).Minute().Do(tasks.MoveOutFailedQueue)
+	if err != nil {
+		log.Fatalf("Cron Job failed: MoveOutFailedQueue: %v", err)
+	}
+	err = server.Cron.Every(1).Minute().Do(tasks.MoveOutCompleteQueue)
+	if err != nil {
+		log.Fatalf("Cron Job failed: MoveOutCompleteQueue: %v", err)
+	}
 
 	server.Mux = router.LoadRouter(server)
 	frame.Start(server)

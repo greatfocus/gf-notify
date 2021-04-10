@@ -94,7 +94,9 @@ func (repo *TemplateRepository) GetTemplates(page int64) ([]models.Template, err
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	result, err := templateMapper(rows)
 	if err != nil {

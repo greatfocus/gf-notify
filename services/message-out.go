@@ -56,7 +56,7 @@ func prepareQueueMessages(repo *repositories.MessageRepository, msgs []models.Me
 	request.Messages = messages
 	request.Status = status
 
-	repo.UpdateQueueToProcessing("queue", args)
+	_, _ = repo.UpdateQueueToProcessing("queue", args)
 }
 
 // SendBulk initiates sending of the messages

@@ -69,7 +69,9 @@ func (repo *ChannelRepository) GetChannels() ([]models.Channel, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	result, err := channelMapper(rows)
 	if err != nil {
