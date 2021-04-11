@@ -14,7 +14,7 @@ RestartSec=10
 
 EnvironmentFile=/etc/sysconfig/respect.env
 WorkingDirectory=/app/gf-notify/
-ExecStart=/app/gf-notify/gf-notify ${ARG1}
+ExecStart=/app/gf-notify/gf-notify ${ARG1} ${ARG2} ${ARG3} ${ARG4} ${ARG5} ${ARG6} ${ARG7} ${ARG8}
 
 # make sure log directory exists and owned by syslog
 PermissionsStartOnly=true
