@@ -102,7 +102,7 @@ spec:
     - port: 5432
       targetPort: 5432
       protocol: TCP
-      nodePort: 30003
+      nodePort: 30004
   selector:
    app: gf-notify-db
 
