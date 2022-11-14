@@ -78,8 +78,8 @@ spec:
     app: gf-notify-api
   ports:
     - protocol: TCP
-      port: 5003
-      targetPort: 5003
+      port: 5002
+      targetPort: 5002
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -118,11 +118,11 @@ spec:
               memory: 100Mi
               cpu: "0.1"
           ports:
-            - containerPort: 5003
+            - containerPort: 5002
           livenessProbe:
             httpGet:
               path: /notify/info
-              port: 5003
+              port: 5002
               scheme: HTTP
             initialDelaySeconds: 5
             periodSeconds: 15
@@ -130,7 +130,7 @@ spec:
           readinessProbe:
             httpGet:
               path: /notify/info
-              port: 5003
+              port: 5002
               scheme: HTTP
             initialDelaySeconds: 5
             timeoutSeconds: 1

@@ -41,6 +41,6 @@ COPY --from=build /source/database ./database
 
 USER $USER
 
-EXPOSE 5003
+EXPOSE 5002
 
 ENTRYPOINT ["./main"]
