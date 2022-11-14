@@ -1,0 +1,156 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: gf-notify-api-volume
+  labels:
+    component: gf-notify
+    function: api
+spec:
+  storageClassName: slow
+  persistentVolumeReclaimPolicy: Retain
+  capacity:
+    storage: 500Mi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/gf_notify/data"
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: gf-notify-log-volume
+  labels:
+    component: gf-notify
+    function: log
+spec:
+  storageClassName: slow
+  persistentVolumeReclaimPolicy: Retain
+  capacity:
+    storage: 500Mi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/gf_notify/logs"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: gf-notify-api-claim
+spec:
+  storageClassName: slow
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+  selector:
+    matchLabels:
+      component: gf-notify
+      function: api
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: gf-notify-log-claim
+spec:
+  storageClassName: slow
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+  selector:
+    matchLabels:
+      component: gf-notify
+      function: log
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gf-notify-api
+  labels:
+    app: gf-notify-api
+spec:
+  type: ClusterIP
+  selector:
+    app: gf-notify-api
+  ports:
+    - protocol: TCP
+      port: 5003
+      targetPort: 5003
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gf-notify-api
+  labels:
+    app: gf-notify-api
+  annotations:
+    rollout: ""
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gf-notify-api
+  template:
+    metadata:
+      labels:
+        app: gf-notify-api
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 3000
+        fsGroup: 2000
+      containers:
+        - name: golang
+          image: mucunga90/gf-notify:qa
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            limits:
+              memory: 250Mi
+              cpu: "1"
+            requests:
+              memory: 100Mi
+              cpu: "0.1"
+          ports:
+            - containerPort: 5003
+          livenessProbe:
+            httpGet:
+              path: /notify/info
+              port: 5003
+              scheme: HTTPS
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /notify/info
+              port: 5003
+              scheme: HTTPS
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+          envFrom:
+            - secretRef:
+                name: gf-notify-secret
+          volumeMounts:
+            - mountPath: /home/f764a076-ae85-4b9a-b258-6998694ee8a6/data
+              name: gf-notify-api-storage
+            - mountPath: /home/f764a076-ae85-4b9a-b258-6998694ee8a6/logs
+              name: gf-notify-log-storage
+      volumes:
+        - name: gf-notify-api-storage
+          persistentVolumeClaim:
+            claimName: gf-notify-api-claim
+        - name: gf-notify-log-storage
+          persistentVolumeClaim:
+            claimName: gf-notify-log-claim
+
+# kubectl delete service gf-notify-api
+# kubectl delete deployment gf-notify-api
+# kubectl delete persistentvolumeclaim gf-notify-api-claim
+# kubectl delete persistentvolume gf-notify-api-volume

@@ -1,0 +1,113 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: gf-notify-db-volume
+  labels:
+    component: gf-notify
+    function: db
+spec:
+  storageClassName: slow
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/postgres/gf_notify"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: gf-notify-db-claim
+spec:
+  storageClassName: slow
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  selector:
+    matchLabels:
+      component: gf-notify
+      function: db
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gf-notify-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gf-notify-db
+  template:
+    metadata:
+      labels:
+        app: gf-notify-db
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:10.4
+          imagePullPolicy: "IfNotPresent"
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: "1"
+            requests:
+              memory: 256Mi
+              cpu: "0.2"
+          ports:
+            - containerPort: 5432
+          args:
+            - -c
+            - hba_file=/etc/postgresql/gf-notify/pg_hba.conf
+            - -c
+            - config_file=/etc/postgresql/gf-notify/postgresql.conf
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: gf-notify-secret
+                  key: DB_NAME
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: gf-notify-secret
+                  key: DB_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: gf-notify-secret
+                  key: DB_PASSWORD
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: gf-notify-db-storage
+            - mountPath: /etc/postgresql/gf-notify
+              name: gf-notify-config-storage
+      volumes:
+        - name: gf-notify-db-storage
+          persistentVolumeClaim:
+            claimName: gf-notify-db-claim
+        - name: gf-notify-config-storage
+          configMap:
+            name: gf-notify-db-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gf-notify-db
+spec:
+  type: NodePort
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+      nodePort: 30003
+  selector:
+   app: gf-notify-db
+
+# kubectl delete service gf-notify-db 
+# kubectl delete deployment gf-notify-db
+# kubectl delete persistentvolumeclaim gf-notify-db-claim
+# kubectl delete persistentvolume gf-notify-db-volume
+# minikube service gf-notify-db -n stage

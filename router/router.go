@@ -4,52 +4,79 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/greatfocus/gf-frame/server"
-	"github.com/greatfocus/gf-notify/controllers"
+	"github.com/greatfocus/gf-notify/handler"
+	"github.com/greatfocus/gf-sframe/server"
 )
 
-// LoadRouter is exported and used in main.go
-func LoadRouter(s *server.MetaData) *http.ServeMux {
+// Router is exported and used in main.go
+func LoadRouter(s *server.Meta) *http.ServeMux {
 	mux := http.NewServeMux()
 	loadHandlers(mux, s)
-	log.Println("Created routes with controllers")
+	log.Println("Created routes with handler")
 	return mux
 }
 
 // notifyRoute created all routes and handlers relating to controller
-func loadHandlers(mux *http.ServeMux, s *server.MetaData) {
+func loadHandlers(mux *http.ServeMux, s *server.Meta) {
 	// Initialize controller
-	messageController := controllers.MessageController{}
-	messageController.Init(s.DB, s.Cache)
+	messageHandler := handler.Message{}
+	messageHandler.Init(s)
+	mux.Handle("/notify/message", server.Use(messageHandler,
+		server.SetHeaders(),
+		server.CheckLimitsRates(),
+		server.CheckCors(s),
+		server.CheckAllowedIPRange(s),
+		server.CheckProcessTimeout(s),
+		server.WithoutAuth()))
 
-	messageBulkController := controllers.MessageBulkController{}
-	messageBulkController.Init(s.DB, s.Cache)
+	dashboardHandler := handler.Dashboard{}
+	dashboardHandler.Init(s)
+	mux.Handle("/notify/dashboard", server.Use(dashboardHandler,
+		server.SetHeaders(),
+		server.CheckLimitsRates(),
+		server.CheckCors(s),
+		server.CheckAllowedIPRange(s),
+		server.CheckProcessTimeout(s),
+		server.WithoutAuth()))
 
-	channelController := controllers.ChannelController{}
-	channelController.Init(s.DB, s.Cache)
+	templateHandler := handler.Template{}
+	templateHandler.Init(s)
+	mux.Handle("/notify/template", server.Use(templateHandler,
+		server.SetHeaders(),
+		server.CheckLimitsRates(),
+		server.CheckCors(s),
+		server.CheckAllowedIPRange(s),
+		server.CheckProcessTimeout(s),
+		server.WithoutAuth()))
 
-	dashboardController := controllers.DashboardController{}
-	dashboardController.Init(s.DB, s.Cache)
+	templateMessageHandler := handler.TemplateMessage{}
+	templateMessageHandler.Init(s)
+	mux.Handle("/notify/template/message", server.Use(templateMessageHandler,
+		server.SetHeaders(),
+		server.CheckLimitsRates(),
+		server.CheckCors(s),
+		server.CheckAllowedIPRange(s),
+		server.CheckProcessTimeout(s),
+		server.WithoutAuth()))
 
-	templateController := controllers.TemplateController{}
-	templateController.Init(s.DB, s.Cache)
-
-	templateMessageController := controllers.TemplateMessageController{}
-	templateMessageController.Init(s.DB, s.Cache)
-
-	templateMessageBulkController := controllers.TemplateMessageBulkController{}
-	templateMessageBulkController.Init(s.DB, s.Cache)
-
-	reportController := controllers.ReportController{}
-	reportController.Init(s.DB, s.Cache)
+	reportHandler := handler.Report{}
+	reportHandler.Init(s)
+	mux.Handle("/notify/report", server.Use(reportHandler,
+		server.SetHeaders(),
+		server.CheckLimitsRates(),
+		server.CheckCors(s),
+		server.CheckAllowedIPRange(s),
+		server.CheckProcessTimeout(s),
+		server.WithoutAuth()))
 
 	// Initialize routes
-	mux.HandleFunc("/notify/channel", server.SetMiddlewareClient(channelController.Handler, s))
-	mux.HandleFunc("/notify/message", server.SetMiddlewareClient(messageController.Handler, s))
-	mux.HandleFunc("/notify/message/bulk", server.SetMiddlewareClient(messageBulkController.Handler, s))
-	mux.HandleFunc("/notify/dashboard", server.SetMiddlewareClient(dashboardController.Handler, s))
-	mux.HandleFunc("/notify/template", server.SetMiddlewareClient(templateController.Handler, s))
-	mux.HandleFunc("/notify/template-message", server.SetMiddlewareClient(templateMessageController.Handler, s))
-	mux.HandleFunc("/notify/template-message/bulk", server.SetMiddlewareClient(templateMessageBulkController.Handler, s))
-	mux.HandleFunc("/notify/report", server.SetMiddlewareClient(reportController.Handler, s))
+	channelHandler := handler.Channel{}
+	channelHandler.Init(s)
+	mux.Handle("/notify/channel", server.Use(channelHandler,
+		server.SetHeaders(),
+		server.CheckLimitsRates(),
+		server.CheckCors(s),
+		server.CheckAllowedIPRange(s),
+		server.CheckProcessTimeout(s),
+		server.WithoutAuth()))
 }

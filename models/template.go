@@ -8,16 +8,15 @@ import (
 
 // Template struct
 type Template struct {
-	ID          int64     `json:"id,omitempty"`
-	Name        string    `json:"name,omitempty"`
-	StaticName  string    `json:"staticName,omitempty"`
-	Subject     string    `json:"subject,omitempty"`
-	Body        string    `json:"body,omitempty"`
-	ParamsCount int64     `json:"paramsCount,omitempty"`
-	CreatedOn   time.Time `json:"-"`
-	UpdatedOn   time.Time `json:"-"`
-	Enabled     bool      `json:"-"`
-	Deleted     bool      `json:"-"`
+	ID        string    `json:"id,omitempty"`
+	Name      string    `json:"name,omitempty"`
+	Key       string    `json:"key,omitempty"`
+	Subject   string    `json:"subject,omitempty"`
+	Body      string    `json:"body,omitempty"`
+	CreatedOn time.Time `json:"-"`
+	UpdatedOn time.Time `json:"-"`
+	Enabled   bool      `json:"-"`
+	Deleted   bool      `json:"-"`
 }
 
 // PrepareTempate initiliazes the Template request object
@@ -29,42 +28,36 @@ func (t *Template) PrepareTempate() {
 // ValidateTemplate check if request is valid
 func (t *Template) ValidateTemplate(action string) error {
 	switch strings.ToLower(action) {
-	case "edit":
-		if t.ID == 0 {
+	case "update":
+		if t.ID == "" {
 			return errors.New("required ID")
 		}
 		if t.Name == "" {
 			return errors.New("required Name")
 		}
-		if t.StaticName == "" {
-			return errors.New("required StaticName")
+		if t.Key == "" {
+			return errors.New("required Key")
 		}
 		if t.Subject == "" {
 			return errors.New("required Subject")
 		}
 		if t.Body == "" {
 			return errors.New("required Body")
-		}
-		if int64(strings.Count(t.Body, "$")) != t.ParamsCount {
-			return errors.New("parameters required don't match")
 		}
 		return nil
 
-	case "add":
+	case "create":
 		if t.Name == "" {
 			return errors.New("required Name")
 		}
-		if t.StaticName == "" {
-			return errors.New("required StaticName")
+		if t.Key == "" {
+			return errors.New("required Key")
 		}
 		if t.Subject == "" {
 			return errors.New("required Subject")
 		}
 		if t.Body == "" {
 			return errors.New("required Body")
-		}
-		if int64(strings.Count(t.Body, "$")) != t.ParamsCount {
-			return errors.New("parameters required don't match")
 		}
 		return nil
 	default:
@@ -73,11 +66,9 @@ func (t *Template) ValidateTemplate(action string) error {
 }
 
 // PrepareTemplateOutput prepare the template to output
-func (t *Template) PrepareTemplateOutput(temp Template) {
+func (t *Template) PrepareTemplateOutput(temp Template) Template {
+	res := Template{}
 	t.ID = temp.ID
-	t.Name = temp.Name
-	t.StaticName = temp.StaticName
-	t.Subject = temp.Subject
-	t.Body = temp.Body
-	t.ParamsCount = temp.ParamsCount
+	t.Key = temp.Key
+	return res
 }

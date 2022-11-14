@@ -1,9 +1,31 @@
 # Binaries for programs and plugins
+gf-notify
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
-*.json
-gf-notify
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+build/**
+uploads/**
+
+# Dependency directories (remove the comment below to include it)
+vendor/
 __debug_bin
+
+# environment
+.env
+logs/**
+upload/**
+ssl/**
+*.txt
+*.log
+*.crt
+*.pem
+*.key
+.env_qa

@@ -7,7 +7,7 @@ Features Available in API
 - Message Bulk Create
 - Message Create
 - Template Create
-- Template Login
+- Template Update
 - Template Fetch
 - Template Get
 - Template Delete

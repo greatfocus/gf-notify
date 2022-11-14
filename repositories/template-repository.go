@@ -1,15 +1,15 @@
 package repositories
 
 import (
+	"context"
 	"database/sql"
-	"fmt"
-	"log"
-	"strconv"
+	"errors"
 	"time"
 
-	"github.com/greatfocus/gf-frame/cache"
-	"github.com/greatfocus/gf-frame/database"
+	"github.com/google/uuid"
 	"github.com/greatfocus/gf-notify/models"
+	"github.com/greatfocus/gf-sframe/cache"
+	"github.com/greatfocus/gf-sframe/database"
 )
 
 // dashboardRepositoryCacheKeys array
@@ -28,17 +28,16 @@ func (repo *TemplateRepository) Init(db *database.Conn, cache *cache.Cache) {
 }
 
 // AddTemplate makes changes to the template
-func (repo *TemplateRepository) AddTemplate(template models.Template) (models.Template, error) {
-	statement := `
-    insert into template (name, staticName, subject, body, paramsCount)
-    values ($1, $2, $3, $4, $5)
+func (repo *TemplateRepository) Create(ctx context.Context, enKey string, template models.Template) (models.Template, error) {
+	var id = uuid.New().String()
+	statement := ` xfbcf
+    insert into template (id, name, key, subject, body)
+    values ($1, PGP_SYM_ENCRYPT($2, '` + enKey + `'), PGP_SYM_ENCRYPT($3, '` + enKey + `'), PGP_SYM_ENCRYPT($4, '` + enKey + `'), PGP_SYM_ENCRYPT($5, '` + enKey + `'))
     returning id
   `
-	var id int64
-	err := repo.db.Select(statement, template.Name, template.StaticName, template.Subject, template.Body, template.ParamsCount).Scan(&id)
-	if err != nil {
-		log.Printf("error: %v\n", err)
-		return template, err
+	_, inserted := repo.db.Insert(ctx, statement, id, template.Name, template.Key, template.Subject, template.Body)
+	if !inserted {
+		return template, errors.New("create template failed")
 	}
 	template.ID = id
 	repo.deleteCache()
@@ -46,29 +45,20 @@ func (repo *TemplateRepository) AddTemplate(template models.Template) (models.Te
 }
 
 // UpdateTemplate makes changes to the template
-func (repo *TemplateRepository) UpdateTemplate(template models.Template) error {
+func (repo *TemplateRepository) Update(ctx context.Context, enKey string, template models.Template) error {
 	query := `
     update template
 	set 
-		name=$2,
-		subject=$3,
-		body=$4,
-		paramsCount=$5,
+		name=PGP_SYM_ENCRYPT($2, '` + enKey + `'),
+		subject=PGP_SYM_ENCRYPT($3, '` + enKey + `'),
+		body=PGP_SYM_ENCRYPT($4, '` + enKey + `'),
 		updatedOn=CURRENT_TIMESTAMP,
-		enabled=$6
+		enabled=PGP_SYM_ENCRYPT($5, '` + enKey + `'),
     where id=$1 and deleted=false
   	`
-	res, err := repo.db.Update(query, template.ID, template.Name, template.Subject, template.Body, template.ParamsCount, template.Enabled)
-	if err != nil {
-		return err
-	}
-
-	count, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if count != 1 {
-		return fmt.Errorf("more than 1 record got updated template for %d", template.ID)
+	updated := repo.db.Update(ctx, query, template.ID, template.Name, template.Subject, template.Body, template.Enabled)
+	if !updated {
+		return errors.New("update template failed")
 	}
 
 	repo.deleteCache()
@@ -76,21 +66,47 @@ func (repo *TemplateRepository) UpdateTemplate(template models.Template) error {
 }
 
 // GetTemplates method returns templates from the database
-func (repo *TemplateRepository) GetTemplates(page int64) ([]models.Template, error) {
+func (repo *TemplateRepository) GetTemplates(ctx context.Context, enKey string, lastID string) ([]models.Template, error) {
 	// get data from cache
-	var key = "TemplateRepository.GetTemplates" + strconv.Itoa(int(page))
+	var key = "TemplateRepository.GetTemplates" + lastID
 	found, cache := repo.getTemplatesCache(key)
 	if found {
 		return cache, nil
 	}
 
-	query := `
-	select id, name, staticName, subject, body, paramsCount, createdOn, updatedOn, enabled 
-	from template 
-	where deleted = false
-	order by id DESC limit 500 OFFSET $1-1
-	`
-	rows, err := repo.db.Query(query, page)
+	var statement string
+	var rows *sql.Rows
+	var err error
+	if lastID != "" {
+		statement = `
+		select
+			id,
+			pgp_sym_decrypt(name::bytea, '` + enKey + `'),
+			pgp_sym_decrypt(key::bytea, '` + enKey + `'),
+			pgp_sym_decrypt(subject::bytea, '` + enKey + `'),
+			pgp_sym_decrypt(body::bytea, '` + enKey + `'),
+			createdOn, updatedOn, enabled 
+		from template 
+		where id >= $1 and deleted = false
+		order BY createdOn DESC limit 20
+		`
+		rows, err = repo.db.Query(ctx, statement, lastID)
+	} else {
+		statement = `
+		select
+			id,
+			pgp_sym_decrypt(name::bytea, '` + enKey + `'),
+			pgp_sym_decrypt(key::bytea, '` + enKey + `'),
+			pgp_sym_decrypt(subject::bytea, '` + enKey + `'),
+			pgp_sym_decrypt(body::bytea, '` + enKey + `'),
+			createdOn, updatedOn, enabled 
+		from template 
+		where deleted = false
+		order BY createdOn DESC limit 20
+		`
+		rows, err = repo.db.Query(ctx, statement)
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -108,10 +124,10 @@ func (repo *TemplateRepository) GetTemplates(page int64) ([]models.Template, err
 	return result, nil
 }
 
-// GetTemplate method returns template from the database
-func (repo *TemplateRepository) GetTemplate(id int64) (models.Template, error) {
+// GetTemplateByID method returns template from the database
+func (repo *TemplateRepository) GetTemplateByID(ctx context.Context, enKey string, id string) (models.Template, error) {
 	// get data from cache
-	var key = "TemplateRepository.GetTemplate" + strconv.Itoa(int(id))
+	var key = "TemplateRepository.GetTemplate" + id
 	found, cache := repo.getTemplateCache(key)
 	if found {
 		return cache, nil
@@ -119,12 +135,18 @@ func (repo *TemplateRepository) GetTemplate(id int64) (models.Template, error) {
 
 	template := models.Template{}
 	query := `
-	select id, name, staticName, subject, body, paramsCount, createdOn, updatedOn, enabled 
+	select
+		id,
+		pgp_sym_decrypt(name::bytea, '` + enKey + `'),
+		pgp_sym_decrypt(key::bytea, '` + enKey + `'),
+		pgp_sym_decrypt(subject::bytea, '` + enKey + `'),
+		pgp_sym_decrypt(body::bytea, '` + enKey + `'),
+		createdOn, updatedOn, enabled 
 	from template 
 	where id=$1 and deleted = false
 	`
-	row := repo.db.Select(query, id)
-	err := row.Scan(&template.ID, &template.Name, &template.StaticName, &template.Subject, &template.Body, &template.ParamsCount, &template.CreatedOn, &template.UpdatedOn, &template.Enabled)
+	row := repo.db.Select(ctx, query, id)
+	err := row.Scan(&template.ID, &template.Name, &template.Key, &template.Subject, &template.Body, &template.CreatedOn, &template.UpdatedOn, &template.Enabled)
 	if err != nil {
 		return template, err
 	}
@@ -134,28 +156,47 @@ func (repo *TemplateRepository) GetTemplate(id int64) (models.Template, error) {
 	return template, nil
 }
 
-// DeleteTemplate makes changes to the template delete status
-func (repo *TemplateRepository) DeleteTemplate(id int64) error {
-	query := `
-    update template
-	set 
-		staticName=CONCAT(id, '-', staticName, 'DELETED'),
-		updatedOn=CURRENT_TIMESTAMP,
-		enabled=false,
-		deleted=true
-    where id=$1
-  	`
-	res, err := repo.db.Update(query, id)
-	if err != nil {
-		return err
+// GetTemplate method returns template from the database
+func (repo *TemplateRepository) GetTemplateByKey(ctx context.Context, enKey string, key string) (models.Template, error) {
+	// get data from cache
+	var cacheKey = "TemplateRepository.GetTemplate" + key
+	found, cache := repo.getTemplateCache(cacheKey)
+	if found {
+		return cache, nil
 	}
 
-	count, err := res.RowsAffected()
+	template := models.Template{}
+	query := `
+	select
+		id,
+		pgp_sym_decrypt(name::bytea, '` + enKey + `'),
+		pgp_sym_decrypt(key::bytea, '` + enKey + `'),
+		pgp_sym_decrypt(subject::bytea, '` + enKey + `'),
+		pgp_sym_decrypt(body::bytea, '` + enKey + `'),
+		createdOn, updatedOn, enabled 
+	from template 
+	where key=$1 and deleted = false
+	`
+	row := repo.db.Select(ctx, query, key)
+	err := row.Scan(&template.ID, &template.Name, &template.Key, &template.Subject, &template.Body, &template.CreatedOn, &template.UpdatedOn, &template.Enabled)
 	if err != nil {
-		return err
+		return template, err
 	}
-	if count != 1 {
-		return fmt.Errorf("more than 1 record got updated template for %d", id)
+
+	// update cache
+	repo.setTemplateCache(cacheKey, template)
+	return template, nil
+}
+
+// DeleteTemplate makes changes to the template delete status
+func (repo *TemplateRepository) Delete(ctx context.Context, id string) error {
+	query := `
+	delete from template
+    where id=$1
+  	`
+	deleted := repo.db.Delete(ctx, query, id)
+	if !deleted {
+		return errors.New("update template failed")
 	}
 
 	repo.deleteCache()
@@ -167,7 +208,7 @@ func templateMapper(rows *sql.Rows) ([]models.Template, error) {
 	templates := []models.Template{}
 	for rows.Next() {
 		var template models.Template
-		err := rows.Scan(&template.ID, &template.Name, &template.StaticName, &template.Subject, &template.Body, &template.ParamsCount, &template.CreatedOn, &template.UpdatedOn, &template.Enabled)
+		err := rows.Scan(&template.ID, &template.Name, &template.Key, &template.Subject, &template.Body, &template.CreatedOn, &template.UpdatedOn, &template.Enabled)
 		if err != nil {
 			return nil, err
 		}

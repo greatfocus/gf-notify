@@ -1,12 +1,14 @@
 package repositories
 
 import (
-	"strconv"
+	"context"
+	"database/sql"
+	"errors"
 	"time"
 
-	"github.com/greatfocus/gf-frame/cache"
-	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-notify/models"
+	cache "github.com/greatfocus/gf-sframe/cache"
+	"github.com/greatfocus/gf-sframe/database"
 )
 
 // dashboardRepositoryCacheKeys array
@@ -25,29 +27,50 @@ func (repo *DashboardRepository) Init(db *database.Conn, cache *cache.Cache) {
 }
 
 // GetDashboard method returns dashboard from the database
-func (repo *DashboardRepository) GetDashboard(year int64, month int64) (models.Dashboard, error) {
+func (repo *DashboardRepository) Get(ctx context.Context, year string, month string) (models.Dashboard, error) {
 	// get data from cache
-	var key = "DashboardRepository.GetDashboard" + strconv.Itoa(int(year)) + strconv.Itoa(int(month))
+	var key = "DashboardRepository.GetDashboard" + year + month
 	found, cache := repo.getDashboardCache(key)
 	if found {
 		return cache, nil
 	}
 
 	dashboard := models.Dashboard{}
-	query := `
+	statement := `
 	select id, request, staging, queue, complete, failed
 	from dashboard 
 	WHERE year = $1 AND month = $2;
 	`
-	row := repo.db.Select(query, year, month)
+	row := repo.db.Select(ctx, statement, year, month)
 	err := row.Scan(&dashboard.ID, &dashboard.Request, &dashboard.Staging, &dashboard.Queue, &dashboard.Complete, &dashboard.Failed)
-	if err != nil {
-		return models.Dashboard{}, err
+	switch err {
+	case sql.ErrNoRows:
+		return dashboard, err
+	case nil:
+		// update cache
+		repo.setDashboardCache(key, dashboard)
+		return dashboard, nil
+	default:
+		return dashboard, err
 	}
+}
 
-	// update cache
-	repo.setDashboardCache(key, dashboard)
-	return dashboard, nil
+// updateStagingDashboard method make changes to dashboard
+func (repo *DashboardRepository) Update(ctx context.Context, count int64) error {
+	statement := `
+	UPDATE dashboard
+	SET 
+		request = request + $1,
+		staging = staging + $1
+	WHERE year = (SELECT EXTRACT(YEAR FROM CURRENT_TIMESTAMP))
+		AND month = (SELECT EXTRACT(MONTH FROM CURRENT_TIMESTAMP))
+	`
+
+	updated := repo.db.Update(ctx, statement, count)
+	if !updated {
+		return errors.New("update failed")
+	}
+	return nil
 }
 
 // getDashboardCache method get cache for dashboard

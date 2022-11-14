@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -8,9 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/greatfocus/gf-frame/cache"
-	"github.com/greatfocus/gf-frame/database"
+	"github.com/google/uuid"
 	"github.com/greatfocus/gf-notify/models"
+	cache "github.com/greatfocus/gf-sframe/cache"
+	"github.com/greatfocus/gf-sframe/database"
 )
 
 // MessageRepository struct
@@ -27,14 +29,16 @@ type QueryParam struct {
 	Statement string
 	Args      []interface{}
 	Repo      *MessageRepository
+	ctx       context.Context
+	enKey     string
 }
 
 // MessageParam struct
 type MessageParam struct {
-	ChannelID int64
-	StatusID  int64
+	ChannelID string
+	Status    string
 	Attempts  int64
-	Page      int64
+	LastID    string
 }
 
 // Init method
@@ -53,20 +57,24 @@ func getYearAndMonth() (y string, m string) {
 	return y, m
 }
 
-/**
+/*
+*
 There are several tables involved in the logic for messaging
 We use this generic function to concatinate the table and date
-**/
+*
+*/
 func getTable(name string) string {
 	year, month := getYearAndMonth()
 	tableName := name + year + month
 	return tableName
 }
 
-/**
+/*
+*
 There are several tables involved in the logic for messaging
 We use this generic function to concatinate the table and date
-**/
+*
+*/
 func replaceTimeHolder(query string) string {
 	year, month := getYearAndMonth()
 	tt := year + month
@@ -84,8 +92,8 @@ func messageMapper(rows *sql.Rows) ([]models.Message, error) {
 	messages := []models.Message{}
 	for rows.Next() {
 		var message models.Message
-		err := rows.Scan(&message.ID, &message.ChannelID, &message.Channel, &message.Recipient, &message.Subject, &message.Content,
-			&message.CreatedOn, &message.ExpireOn, &message.StatusID, &message.Status, &message.Attempts, &message.Priority)
+		err := rows.Scan(&message.ID, &message.ChannelID, &message.Recipient, &message.Subject, &message.Content,
+			&message.CreatedOn, &message.ExpireOn, &message.Status, &message.Attempts, &message.Priority)
 		if err != nil {
 			return nil, err
 		}
@@ -96,38 +104,26 @@ func messageMapper(rows *sql.Rows) ([]models.Message, error) {
 }
 
 // insert adds new  database record
-func insert(params *QueryParam) (int64, error) {
-	var id int64
-	err := params.Repo.db.Select(params.Statement, params.Args...).Scan(&id)
-	if err != nil {
-		return 0, err
+func insert(params *QueryParam) error {
+	_, inserted := params.Repo.db.Insert(params.ctx, params.Statement, params.Args...)
+	if !inserted {
+		return errors.New("create failed")
 	}
-	return id, nil
+	return nil
 }
 
 // update makes changes to database record
-func update(params *QueryParam, rowCount int64) (bool, error) {
-	res, err := params.Repo.db.Update(params.Statement, params.Args...)
-	if err != nil {
-		return false, err
+func update(params *QueryParam) error {
+	updated := params.Repo.db.Update(params.ctx, params.Statement, params.Args...)
+	if !updated {
+		return errors.New("update failed")
 	}
-
-	count, err := res.RowsAffected()
-	if err != nil {
-		return false, err
-	}
-
-	if count != rowCount {
-		err = errors.New("records updated more than the expected")
-		return false, err
-	}
-
-	return true, nil
+	return nil
 }
 
 // queryMessages executes to get messages
 func query(params *QueryParam) ([]models.Message, error) {
-	rows, err := params.Repo.db.Query(params.Statement, params.Args...)
+	rows, err := params.Repo.db.Query(params.ctx, params.Statement, params.Args...)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +135,7 @@ func query(params *QueryParam) ([]models.Message, error) {
 }
 
 // newQueryParams returns params
-func newQueryParams(table string, statement string, args []interface{}, repo *MessageRepository) *QueryParam {
+func newQueryParams(table string, statement string, args []interface{}, repo *MessageRepository, ctx context.Context, enKey string) *QueryParam {
 	// get current month and date
 	year, month := getYearAndMonth()
 	return &QueryParam{
@@ -149,6 +145,8 @@ func newQueryParams(table string, statement string, args []interface{}, repo *Me
 		Statement: statement,
 		Args:      args,
 		Repo:      repo,
+		ctx:       ctx,
+		enKey:     enKey,
 	}
 }
 
@@ -168,82 +166,90 @@ func prepareInStatement(arg []interface{}) string {
 }
 
 // ReportMessages method returns messages from the database
-func (repo *MessageRepository) ReportMessages(table string, channel int64, year int64, month int64, page int64) ([]models.Message, error) {
+func (repo *MessageRepository) Report(ctx context.Context, enKey string, table string, channel string, year string, month string, lastID string) ([]models.Message, error) {
 	// prepare the statement
 	statement := `
-	select m.id, m.channelId, c.name as channel, m.recipient, m.subject, m.content, m.createdOn, m.expireOn, m.statusId, s.name as status, 0 as attempts, m.priority 
+	select m.id, m.channelId, c.name as channel, m.recipient, m.subject, m.content, m.createdOn, m.expireOn, m.status, m.attempts, m.priority 
 	from $table m
 	inner join channel c on c.id = m.channelId
-	inner join status s on s.id = m.statusId
-	where m.channelId = $1
-	order BY m.id DESC limit 500 OFFSET $2-1
+	where m.channelId = $1 and m.id >= $2
+	order BY m.createdOn DESC limit 20
 	`
 	// prepare the args
 	var args []interface{}
-	args = append(args, channel, page)
-	tt := strconv.Itoa(int(year)) + strconv.Itoa(int(month))
+	args = append(args, channel, lastID)
+	tt := year + month
 	newTable := fmt.Sprintf("%s%s", table, tt)
 	qry := strings.Replace(statement, "$table", string(newTable), -1)
-	queryParams := newQueryParams(table, qry, args, repo)
+	queryParams := newQueryParams(table, qry, args, repo, ctx, enKey)
 	return query(queryParams)
 }
 
 // GetMessages method returns messages from the database
-func (repo *MessageRepository) GetMessages(table string, messageParam MessageParam) ([]models.Message, error) {
+func (repo *MessageRepository) GetMessages(ctx context.Context, enKey string, table string, messageParam MessageParam) ([]models.Message, error) {
 	// prepare the statement
-	statement := `
-	select m.id, m.channelId, c.name as channel, m.recipient, m.subject, m.content, m.createdOn, m.expireOn, m.statusId, s.name as status, m.attempts, m.priority 
-	from $table m
-	inner join channel c on c.id = m.channelId
-	inner join status s on s.id = m.statusId
-	where 
-		channelId = $1 and m.statusId=$2 and m.attempts<$3
-	order BY m.id DESC limit 500 OFFSET $4-1
-	`
-	// prepare the args
+	var statement string
 	var args []interface{}
-	args = append(args, messageParam.ChannelID, messageParam.StatusID, messageParam.Attempts, messageParam.Page)
-	queryParams := newQueryParams(table, replaceTableHolder(table, statement), args, repo)
+	if messageParam.LastID != "" {
+		statement = `
+		select m.id, m.channelId, c.name as channel, m.recipient, m.subject, m.content, m.createdOn, m.expireOn, m.status, m.attempts, m.priority 
+		from $table m
+		inner join channel c on c.id = m.channelId
+		where channelId = $1 and m.status=$2 and m.attempts<$3
+		order BY m.createdOn DESC limit 20
+		`
+		args = append(args, messageParam.ChannelID, messageParam.Status, messageParam.Attempts)
+	} else {
+		statement = `
+		select m.id, m.channelId, c.name as channel, m.recipient, m.subject, m.content, m.createdOn, m.expireOn, m.status, m.attempts, m.priority 
+		from $table m
+		inner join channel c on c.id = m.channelId
+		where channelId = $1 and m.status=$2 and m.attempts<$3 and m.id >=$4
+		order BY m.createdOn DESC limit 20
+		`
+		args = append(args, messageParam.ChannelID, messageParam.Status, messageParam.Attempts, messageParam.LastID)
+	}
+	queryParams := newQueryParams(table, replaceTableHolder(table, statement), args, repo, ctx, enKey)
 	return query(queryParams)
 }
 
-// Add method created new message request
-func (repo *MessageRepository) Add(table string, message models.Message) (models.Message, error) {
+// Create method created new message request
+func (repo *MessageRepository) Create(ctx context.Context, enKey string, table string, message models.Message) (models.Message, error) {
+	var id = uuid.New().String()
 	statement := `
-    insert into $table (channelId, recipient, subject, content, createdOn, expireOn, statusId, priority)
-    values ($1, $2, $3, $4, $5, $6, $7, $8)
+    insert into $table (id, channelId, recipient, subject, content, createdOn, expireOn, status, priority)
+    values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     returning id
 	`
 
 	var args []interface{}
-	args = append(args, message.ChannelID, message.Recipient, message.Subject, message.Content,
-		message.CreatedOn, message.ExpireOn, message.StatusID, message.Priority)
-	queryParams := newQueryParams(table, replaceTableHolder(table, statement), args, repo)
-	id, err := insert(queryParams)
+	args = append(args, id, message.ChannelID, message.Recipient, message.Subject, message.Content,
+		message.CreatedOn, message.ExpireOn, message.Status, message.Priority)
+	queryParams := newQueryParams(table, replaceTableHolder(table, statement), args, repo, ctx, enKey)
+	err := insert(queryParams)
 	if err != nil {
 		return message, err
 	}
 
 	message.ID = id
-	_ = repo.updateStagingDashboard(1)
 	return message, nil
 }
 
-// updateStagingDashboard method make changes to dashboard
-func (repo *MessageRepository) updateStagingDashboard(count int64) error {
+// Update method make changes to message
+func (repo *MessageRepository) Update(ctx context.Context, enKey string, table string, message models.Message) error {
 	statement := `
-	UPDATE dashboard
-	SET 
-		request = request + $1,
-		staging = staging + $1
-	WHERE year = (SELECT EXTRACT(YEAR FROM CURRENT_TIMESTAMP))
-		AND month = (SELECT EXTRACT(MONTH FROM CURRENT_TIMESTAMP))
+    update $table
+	set 
+		status=$2, 
+		attempts=$3,
+		reference=$4	
+    where id=$1
 	`
 
 	var args []interface{}
-	args = append(args, count)
-	queryParams := newQueryParams("", statement, args, repo)
-	_, err := update(queryParams, 1)
+	args = append(args, message.ID, message.Status, message.Attempts, message.Reference)
+	queryParams := newQueryParams(table, replaceTableHolder(table, statement), args, repo, ctx, enKey)
+	err := update(queryParams)
 	if err != nil {
 		return err
 	}
@@ -251,51 +257,45 @@ func (repo *MessageRepository) updateStagingDashboard(count int64) error {
 	return nil
 }
 
-// Update method make changes to message
-func (repo *MessageRepository) Update(table string, message models.Message) (bool, error) {
-	statement := `
-    update $table
-	set 
-		statusId=$2, 
-		attempts=$3,
-		reference=$4	
-    where id=$1
-	`
-
-	var args []interface{}
-	args = append(args, message.ID, message.StatusID, message.Attempts, message.Reference)
-	queryParams := newQueryParams(table, replaceTableHolder(table, statement), args, repo)
-	success, err := update(queryParams, 1)
-	if err != nil {
-		return success, err
-	}
-
-	return success, nil
-}
-
-// UpdateQueueToProcessing method make changes to message
-func (repo *MessageRepository) UpdateQueueToProcessing(table string, args []interface{}) (bool, error) {
+// UpdateQueueToProgress method make changes to message
+func (repo *MessageRepository) UpdateQueueToProgress(ctx context.Context, table string, args []interface{}) error {
 	statement := `
     update queue$tt
 	set 
-		statusId=3
+		status="pending"
     where id IN $IN
 	`
 	newArgs := prepareInStatement(args)
 	query := strings.Replace(statement, "$IN", newArgs, -1)
 	qry := replaceTimeHolder(query)
-	queryParams := newQueryParams(table, replaceTableHolder(table, qry), nil, repo)
-	success, err := update(queryParams, int64(len(args)))
+	queryParams := newQueryParams(table, replaceTableHolder(table, qry), args, repo, ctx, "")
+	err := update(queryParams)
 	if err != nil {
-		return success, err
+		return err
 	}
 
-	return success, nil
+	return nil
+}
+
+// ReQueue runs a script to move data
+func (repo *MessageRepository) ReQueue(ctx context.Context) (bool, error) {
+	statement := `
+		UPDATE queue$tt
+		SET status="new"
+		WHERE status="pending" and EXTRACT(MINUTE FROM updatedOn) > 10;
+	`
+	query := replaceTimeHolder(statement)
+	updated := repo.db.Update(ctx, query)
+	if !updated {
+		derr := errors.New("message update failed")
+		return updated, derr
+	}
+
+	return updated, nil
 }
 
 // MoveStagedToQueue runs a script to move data
-func (repo *MessageRepository) MoveStagedToQueue() (bool, error) {
-	success := true
+func (repo *MessageRepository) MoveStagedToQueue(ctx context.Context) (bool, error) {
 	statement := `
 	DO $$ 
 	DECLARE
@@ -311,8 +311,8 @@ func (repo *MessageRepository) MoveStagedToQueue() (bool, error) {
 				LIMIT 500)
 			RETURNING *
 		), insert_moved_rows AS (
-			INSERT INTO queue$tt (id, channelId, recipient, subject, content, createdOn, expireOn, statusId, attempts, priority)
-			SELECT id, channelId, recipient, subject, content, createdOn, expireOn, 2, 0, priority FROM moved_rows
+			INSERT INTO queue$tt (id, channelId, recipient, subject, content, createdOn, expireOn, status, attempts, priority)
+			SELECT id, channelId, recipient, subject, content, createdOn, expireOn, "new", 0, priority FROM moved_rows
 		)		
 		UPDATE dashboard
 		SET 
@@ -323,34 +323,17 @@ func (repo *MessageRepository) MoveStagedToQueue() (bool, error) {
 	`
 
 	query := replaceTimeHolder(statement)
-	_, err := repo.db.Update(query)
-	if err != nil {
-		return false, err
+	updated := repo.db.Update(ctx, query)
+	if !updated {
+		derr := errors.New("message update failed")
+		return updated, derr
 	}
 
-	return success, nil
+	return updated, nil
 }
 
-// ReQueueProcessingEmails runs a script to move data
-func (repo *MessageRepository) ReQueueProcessingEmails() (bool, error) {
-	success := true
-	statement := `
-		UPDATE queue$tt
-		SET statusid=2
-		WHERE statusid=3 and EXTRACT(MINUTE FROM updatedOn) > 10;
-	`
-	query := replaceTimeHolder(statement)
-	_, err := repo.db.Update(query)
-	if err != nil {
-		return false, err
-	}
-
-	return success, nil
-}
-
-// MoveOutFailedQueue runs a script to move data
-func (repo *MessageRepository) MoveOutFailedQueue() (bool, error) {
-	success := true
+// MoveFailedQueue runs a script to move data
+func (repo *MessageRepository) MoveFailedQueue(ctx context.Context) (bool, error) {
 	statement := `
 	DO $$ 
 	DECLARE
@@ -363,13 +346,13 @@ func (repo *MessageRepository) MoveOutFailedQueue() (bool, error) {
 			WHERE ID IN (
 				SELECT ID
 				FROM queue$tt
-				WHERE statusid=5
+				WHERE status=5
 				ORDER BY id
 				LIMIT 500)
 			RETURNING *
 		), insert_moved_rows AS (
-			INSERT INTO failed$tt (id, channelId, recipient, subject, content, createdOn, expireOn, statusId, attempts, priority, reference)
-			SELECT id, channelId, recipient, subject, content, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows
+			INSERT INTO failed$tt (id, channelId, recipient, subject, content, createdOn, expireOn, status, attempts, priority, reference)
+			SELECT id, channelId, recipient, subject, content, createdOn, expireOn, status, attempts, priority, reference FROM moved_rows
 		)
 		UPDATE dashboard
 		SET 
@@ -380,17 +363,17 @@ func (repo *MessageRepository) MoveOutFailedQueue() (bool, error) {
 	`
 
 	query := replaceTimeHolder(statement)
-	_, err := repo.db.Update(query)
-	if err != nil {
-		return false, err
+	updated := repo.db.Update(ctx, query)
+	if !updated {
+		derr := errors.New("message update failed")
+		return updated, derr
 	}
 
-	return success, nil
+	return updated, nil
 }
 
-// MoveOutCompleteQueue runs a script to move data
-func (repo *MessageRepository) MoveOutCompleteQueue() (bool, error) {
-	success := true
+// MoveCompleteQueue runs a script to move data
+func (repo *MessageRepository) MoveCompleteQueue(ctx context.Context) (bool, error) {
 	statement := `
 	DO $$ 
 	DECLARE
@@ -403,13 +386,13 @@ func (repo *MessageRepository) MoveOutCompleteQueue() (bool, error) {
 			WHERE ID IN (
 				SELECT ID
 				FROM queue$tt
-				WHERE statusId=4
+				WHERE status=4
 				ORDER BY id
 				LIMIT 500)
 			RETURNING *
 		), insert_moved_rows AS (
-			INSERT INTO complete$tt (id, channelId, recipient, subject, content, createdOn, expireOn, statusId, attempts, priority, reference)
-			SELECT id, channelId, recipient, subject, content, createdOn, expireOn, statusId, attempts, priority, reference FROM moved_rows
+			INSERT INTO complete$tt (id, channelId, recipient, subject, content, createdOn, expireOn, status, attempts, priority, reference)
+			SELECT id, channelId, recipient, subject, content, createdOn, expireOn, status, attempts, priority, reference FROM moved_rows
 		)
 		UPDATE dashboard
 		SET 
@@ -420,10 +403,11 @@ func (repo *MessageRepository) MoveOutCompleteQueue() (bool, error) {
 	`
 
 	query := replaceTimeHolder(statement)
-	_, err := repo.db.Update(query)
-	if err != nil {
-		return false, err
+	updated := repo.db.Update(ctx, query)
+	if updated {
+		derr := errors.New("message update failed")
+		return updated, derr
 	}
 
-	return success, nil
+	return updated, nil
 }

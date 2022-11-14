@@ -1,50 +1,24 @@
 package main
 
 import (
-	"log"
-	"os"
-
-	frame "github.com/greatfocus/gf-frame"
 	"github.com/greatfocus/gf-notify/router"
 	"github.com/greatfocus/gf-notify/task"
-	_ "github.com/greatfocus/pq"
+	_ "github.com/greatfocus/gf-pq"
+	frame "github.com/greatfocus/gf-sframe"
 )
 
 // Entry point to the solution
 func main() {
-	// Get arguments
-	var env = os.Args[1]
-	if env == "" {
-		panic("pass the environment")
-	}
-
-	// Load params
-	frame, server := frame.NewFrame(env)
+	frame := frame.NewFrame("gf-notify", "notify")
+	mux := router.LoadRouter(frame.Server)
 
 	// background task
 	tasks := task.Tasks{}
-	tasks.Init(server.DB, server.Cache, server.Config)
-	err := server.Cron.Every(20).Second().Do(tasks.MoveStagedToQueue)
-	if err != nil {
-		log.Fatalf("Cron Job failed: MoveStagedToQueue: %v", err)
-	}
-	err = server.Cron.Every(10).Second().Do(tasks.ReQueueProcessingEmails) // in case there is panic error some queue may be stack in processing mode
-	if err != nil {
-		log.Fatalf("Cron Job failed: ReQueueProcessingEmails: %v", err)
-	}
-	err = server.Cron.Every(10).Second().Do(tasks.SendQueuedEmails)
-	if err != nil {
-		log.Fatalf("Cron Job failed: SendQueuedEmails: %v", err)
-	}
-	err = server.Cron.Every(1).Minute().Do(tasks.MoveOutFailedQueue)
-	if err != nil {
-		log.Fatalf("Cron Job failed: MoveOutFailedQueue: %v", err)
-	}
-	err = server.Cron.Every(1).Minute().Do(tasks.MoveOutCompleteQueue)
-	if err != nil {
-		log.Fatalf("Cron Job failed: MoveOutCompleteQueue: %v", err)
-	}
-
-	server.Mux = router.LoadRouter(server)
-	frame.Start(server)
+	tasks.Init(frame.Server)
+	frame.Server.Cron.MustAddJob("* * * * *", tasks.MoveStagedToQueue)       // 20 Seconds
+	frame.Server.Cron.MustAddJob("* * * * *", tasks.ReQueueProcessingEmails) // 10 Seconds
+	frame.Server.Cron.MustAddJob("* * * * *", tasks.SendQueuedEmails)        // 10 Seconds
+	frame.Server.Cron.MustAddJob("* * * * *", tasks.MoveOutFailedQueue)      // 1 Minute
+	frame.Server.Cron.MustAddJob("* * * * *", tasks.MoveOutCompleteQueue)    // 1 Minute
+	frame.Start(mux)
 }

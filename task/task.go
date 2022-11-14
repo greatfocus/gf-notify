@@ -1,42 +1,36 @@
 package task
 
 import (
+	"context"
 	"log"
+	"time"
 
-	"github.com/greatfocus/gf-frame/cache"
-	"github.com/greatfocus/gf-frame/config"
-	"github.com/greatfocus/gf-frame/database"
 	"github.com/greatfocus/gf-notify/repositories"
-	"github.com/greatfocus/gf-notify/services"
+	"github.com/greatfocus/gf-sframe/database"
+	"github.com/greatfocus/gf-sframe/server"
 )
 
 // Tasks struct
 type Tasks struct {
 	messageRepository *repositories.MessageRepository
-	config            *config.Config
 	db                *database.Conn
+	Timeout           uint64
 }
 
 // Init required parameters
-func (t *Tasks) Init(db *database.Conn, cache *cache.Cache, config *config.Config) {
+func (t *Tasks) Init(s *server.Meta) {
 	t.messageRepository = &repositories.MessageRepository{}
-	t.messageRepository.Init(db, cache)
-	t.config = config
-	t.db = db
+	t.messageRepository.Init(s.DB, s.Cache)
+	t.db = s.DB
+	t.Timeout = s.Timeout
 }
 
 // SendQueuedEmails intiates the job to send queued messages
 func (t *Tasks) SendQueuedEmails() {
-	log.Println("Scheduler_SendQueuedEmails started")
-	request := services.EmailService{
-		Host:     t.config.Integrations.Email.Host,
-		Port:     t.config.Integrations.Email.Port,
-		From:     t.config.Integrations.Email.From,
-		User:     t.config.Integrations.Email.User,
-		Password: t.config.Integrations.Email.Password,
-	}
-	services.SendQueuedEmails(t.messageRepository, &request)
-	log.Println("Scheduler_SendQueuedEmails ended")
+	// log.Println("Scheduler_SendQueuedEmails started")
+	// request := services.EmailService{}
+	// services.SendQueuedEmails(t.messageRepository, &request)
+	// log.Println("Scheduler_SendQueuedEmails ended")
 }
 
 // MoveStagedToQueue ...
@@ -47,7 +41,9 @@ This job is responsible for moving staged messages to the queue
 **/
 func (t *Tasks) MoveStagedToQueue() {
 	log.Println("Scheduler_MoveStagedToQueue started")
-	success, err := t.messageRepository.MoveStagedToQueue()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(t.Timeout)*time.Second)
+	defer cancel()
+	success, err := t.messageRepository.MoveStagedToQueue(ctx)
 	if err != nil && !success {
 		log.Println("Scheduler_MoveStagedToQueue failed")
 		return
@@ -63,7 +59,10 @@ This job is responsible for re-queueing messages that have been processing for m
 **/
 func (t *Tasks) ReQueueProcessingEmails() {
 	log.Println("Scheduler_ReQueueProcessingEmails started")
-	success, err := t.messageRepository.ReQueueProcessingEmails()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(t.Timeout)*time.Second)
+	defer cancel()
+
+	success, err := t.messageRepository.ReQueue(ctx)
 	if err != nil && !success {
 		log.Println("Scheduler_ReQueueProcessingEmails failed")
 		return
@@ -79,7 +78,9 @@ This job is responsible for moving failed messages to the failed
 **/
 func (t *Tasks) MoveOutFailedQueue() {
 	log.Println("Scheduler_MoveOutFailedQueue started")
-	success, err := t.messageRepository.MoveOutFailedQueue()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(t.Timeout)*time.Second)
+	defer cancel()
+	success, err := t.messageRepository.MoveFailedQueue(ctx)
 	if err != nil && !success {
 		log.Println("Scheduler_MoveOutFailedQueue failed")
 		return
@@ -95,7 +96,9 @@ This job is responsible for moving completed messages to the complete
 **/
 func (t *Tasks) MoveOutCompleteQueue() {
 	log.Println("Scheduler_MoveOutCompleteQueue started")
-	success, err := t.messageRepository.MoveOutCompleteQueue()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(t.Timeout)*time.Second)
+	defer cancel()
+	success, err := t.messageRepository.MoveCompleteQueue(ctx)
 	if err != nil && !success {
 		log.Println("Scheduler_MoveOutCompleteQueue failed")
 		return

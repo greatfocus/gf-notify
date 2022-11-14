@@ -5,27 +5,23 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/greatfocus/gf-frame/validate"
 )
 
 // Message struct
 type Message struct {
-	ID         int64     `json:"id,omitempty"`
-	TemplateID int64     `json:"templateId,omitempty"`
-	ChannelID  int64     `json:"channelId,omitempty"`
-	Channel    string    `json:"channel,omitempty"`
+	ID         string    `json:"id,omitempty"`
+	ChannelID  string    `json:"channelId,omitempty"`
 	Recipient  string    `json:"recipient,omitempty"`
 	Subject    string    `json:"subject,omitempty"`
 	Content    string    `json:"content,omitempty"`
 	CreatedOn  time.Time `json:"-"`
 	ExpireOn   time.Time `json:"-"`
 	Operation  string    `json:"operation,omitempty"`
-	StatusID   int64     `json:"statusId,omitempty"`
 	Status     string    `json:"status,omitempty"`
 	Attempts   int64     `json:"attempts,omitempty"`
 	Priority   int64     `json:"priority,omitempty"`
 	Reference  string    `json:"reference,omitempty"`
+	TemplateID string    `json:"templateId,omitempty"`
 	Params     []string  `json:"params,omitempty"`
 }
 
@@ -35,10 +31,8 @@ func (m *Message) PrepareInput(r *http.Request) {
 	var expire = time.Now()
 	expire.AddDate(0, 0, 7)
 
-	m.ID = 0
-	m.StatusID = 1
+	m.Status = "new"
 	m.Attempts = 0
-	m.Priority = setPriority(m.ChannelID)
 	m.CreatedOn = time.Now()
 	m.ExpireOn = expire
 }
@@ -47,7 +41,7 @@ func (m *Message) PrepareInput(r *http.Request) {
 func (m *Message) Validate(action string) error {
 	switch strings.ToLower(action) {
 	case "new":
-		if m.ChannelID == 0 {
+		if m.ChannelID == "" {
 			return errors.New("required Channel")
 		}
 		if m.Recipient == "" {
@@ -59,23 +53,8 @@ func (m *Message) Validate(action string) error {
 		if m.Content == "" {
 			return errors.New("required Content")
 		}
-		if !validate.Email(m.Recipient) {
-			return errors.New("invalid email address")
-		}
-		return nil
-
-	case "new-template":
-		if m.TemplateID == 0 {
-			return errors.New("required Template")
-		}
-		if m.ChannelID == 0 {
-			return errors.New("required Channel")
-		}
 		if m.Recipient == "" {
-			return errors.New("required Recipient")
-		}
-		if !validate.Email(m.Recipient) {
-			return errors.New("invalid email address")
+			return errors.New("required email address")
 		}
 		return nil
 	default:
@@ -84,18 +63,8 @@ func (m *Message) Validate(action string) error {
 }
 
 // PrepareOutput initiliazes the Message request object
-func (m *Message) PrepareOutput(message Message) {
-	m.ID = message.ID
-}
-
-// setPriority returns the channel priority
-func setPriority(channelID int64) int64 {
-	switch channelID {
-	case 1:
-		return 1
-	case 2:
-		return 2
-	default:
-		return 3
-	}
+func (m *Message) PrepareOutput(message Message) Message {
+	res := Message{}
+	res.ID = message.ID
+	return res
 }

@@ -1,7 +1,0 @@
--- DO $$ 
--- DECLARE
--- 	mnth SMALLINT := (SELECT EXTRACT(MONTH FROM CURRENT_TIMESTAMP));
--- 	yr SMALLINT := (SELECT EXTRACT(YEAR FROM CURRENT_TIMESTAMP));
--- BEGIN
--- 	EXECUTE format('CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_staging_report ON staging%s%s USING BTREE(channelId, statusId);', yr, mnth);
--- END $$;
